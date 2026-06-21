@@ -7,8 +7,8 @@
     <list default="true" id="2bfadcf7-9009-4aba-9e1a-e1a101e4f275" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/user-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/user-service/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/incident-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/incident-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/incident-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/incident-service/src/main/resources/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,6 +57,9 @@
   &quot;fromUser&quot;: false
 }</component>
   <component name="ProjectId" id="3FPCAWhatIaQQMcPyVVk49ZAagK" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -112,7 +115,7 @@
           <value>
             <map>
               <entry key="EurekaServerApplication" value="FAILED" />
-              <entry key="IncidentServiceApplication" value="FAILED" />
+              <entry key="IncidentServiceApplication" value="STOPPED" />
               <entry key="UserServiceApplication" value="STOPPED" />
             </map>
           </value>
@@ -157,7 +160,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1781967173624</updated>
-      <workItem from="1781967174795" duration="9816000" />
+      <workItem from="1781967174795" duration="14045000" />
     </task>
     <servers />
   </component>
