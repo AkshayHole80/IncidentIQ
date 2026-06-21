@@ -5,10 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2bfadcf7-9009-4aba-9e1a-e1a101e4f275" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/incident-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/incident-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/incident-service/src/main/java/com/incidentIQ/incident_service/security/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/incident-service/src/main/java/com/incidentIQ/incident_service/security/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/incident-service/src/main/java/com/incidentIQ/incident_service/service/impl/IncidentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/incident-service/src/main/java/com/incidentIQ/incident_service/service/impl/IncidentServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/incident-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/incident-service/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user-service/src/main/java/com/incidentIQ/user_service/security/JwtAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/user-service/src/main/java/com/incidentIQ/user_service/security/JwtAuthenticationFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user-service/src/main/java/com/incidentIQ/user_service/security/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/user-service/src/main/java/com/incidentIQ/user_service/security/SecurityConfig.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -84,7 +87,7 @@
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Admin/Documents/IncidentIQ&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Admin/Documents/IncidentIQ/incident-service/src/main/java/com/incidentIQ/incident_service/security&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -100,6 +103,11 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Admin\Documents\IncidentIQ\incident-service\src\main\java\com\incidentIQ\incident_service\security" />
+    </key>
+  </component>
   <component name="RunDashboard">
     <option name="configurationTypes">
       <set>
@@ -160,7 +168,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1781967173624</updated>
-      <workItem from="1781967174795" duration="14045000" />
+      <workItem from="1781967174795" duration="20036000" />
     </task>
     <servers />
   </component>
