@@ -14,9 +14,10 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
+
+jwt:
+  secret: aW5jaWRlbnRpcXN1cGVyc2VjcmV0a2V5aW5jaWRlbnRpcXN1cGVyc2VjcmV0a2V5MTIz
+  expiration: 86400000
 
 eureka:
   client:
