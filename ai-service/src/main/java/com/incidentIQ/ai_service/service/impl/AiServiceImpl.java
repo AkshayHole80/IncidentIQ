@@ -6,6 +6,7 @@ import com.incidentIQ.ai_service.dto.request.AnalyzeIncidentRequestDto;
 import com.incidentIQ.ai_service.dto.response.AnalyzeIncidentResponseDto;
 import com.incidentIQ.ai_service.service.AiService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -14,6 +15,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AiServiceImpl implements AiService {
 
     private final RestClient restClient;
@@ -26,7 +28,9 @@ public class AiServiceImpl implements AiService {
     public AnalyzeIncidentResponseDto analyzeIncident(
             AnalyzeIncidentRequestDto request) {
 
-        String prompt = """
+        try {
+
+            String prompt = """
                 Analyze this IT incident.
 
                 Title: %s
@@ -39,33 +43,31 @@ public class AiServiceImpl implements AiService {
                   "category":"APPLICATION|DATABASE|NETWORK|SECURITY|INFRASTRUCTURE"
                 }
                 """
-                .formatted(
-                        request.getTitle(),
-                        request.getDescription()
-                );
+                    .formatted(
+                            request.getTitle(),
+                            request.getDescription()
+                    );
 
-        String response = restClient.post()
-                .uri(
-                        "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
-                )
-                .header("X-goog-api-key", apiKey)
-                .body(
-                        Map.of(
-                                "contents",
-                                new Object[]{
-                                        Map.of(
-                                                "parts",
-                                                new Object[]{
-                                                        Map.of("text", prompt)
-                                                }
-                                        )
-                                }
-                        )
-                )
-                .retrieve()
-                .body(String.class);
-
-        try {
+            String response = restClient.post()
+                    .uri(
+                            "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
+                    )
+                    .header("X-goog-api-key", apiKey)
+                    .body(
+                            Map.of(
+                                    "contents",
+                                    new Object[]{
+                                            Map.of(
+                                                    "parts",
+                                                    new Object[]{
+                                                            Map.of("text", prompt)
+                                                    }
+                                            )
+                                    }
+                            )
+                    )
+                    .retrieve()
+                    .body(String.class);
 
             JsonNode root =
                     objectMapper.readTree(response);
@@ -85,10 +87,12 @@ public class AiServiceImpl implements AiService {
             );
 
         } catch (Exception e) {
+            log.error(
+                    "Gemini API call failed", e
+            );
 
             throw new RuntimeException(
-                    "Failed to parse Gemini response",
-                    e
+                    "Failed to analyze incident using Gemini API", e
             );
         }
     }
