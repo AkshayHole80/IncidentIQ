@@ -3,10 +3,12 @@ package com.incidentIQ.incident_service.service.impl;
 import com.incidentIQ.incident_service.client.AiServiceClient;
 import com.incidentIQ.incident_service.client.UserServiceClient;
 import com.incidentIQ.incident_service.dto.request.AnalyzeIncidentRequestDto;
+import com.incidentIQ.incident_service.dto.request.AssignIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.request.CreateIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.request.UpdateIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.response.AnalyzeIncidentResponseDto;
 import com.incidentIQ.incident_service.dto.response.IncidentResponseDto;
+import com.incidentIQ.incident_service.dto.response.IncidentStatsResponseDto;
 import com.incidentIQ.incident_service.dto.response.UserResponseDto;
 import com.incidentIQ.incident_service.entity.Incident;
 import com.incidentIQ.incident_service.enums.Category;
@@ -231,5 +233,172 @@ public class IncidentServiceImpl implements IncidentService {
                     "You are not authorized to access this incident"
             );
         }
+    }
+
+    @Override
+    public IncidentResponseDto assignIncident(
+            Long id,
+            AssignIncidentRequestDto request) {
+
+        Incident incident =
+                incidentRepository.findById(id)
+                        .orElseThrow(() ->
+                                new IncidentNotFoundException(
+                                        "Incident not found with id: " + id));
+
+        incident.setAssignedTo(
+                request.getAssignedTo());
+
+        incident.setStatus(
+                IncidentStatus.IN_PROGRESS);
+
+        Incident saved =
+                incidentRepository.save(
+                        incident);
+
+        return modelMapper.map(
+                saved,
+                IncidentResponseDto.class);
+    }
+
+
+    @Override
+    public IncidentResponseDto updateStatus(
+            Long id,
+            IncidentStatus status) {
+
+        Incident incident =
+                incidentRepository.findById(id)
+                        .orElseThrow(() ->
+                                new IncidentNotFoundException(
+                                        "Incident not found with id: " + id));
+
+        incident.setStatus(status);
+
+        Incident saved =
+                incidentRepository.save(incident);
+
+        return modelMapper.map(
+                saved,
+                IncidentResponseDto.class);
+    }
+
+    @Override
+    public List<IncidentResponseDto> getAssignedIncidents() {
+
+        String email =
+                SecurityUtils.getCurrentUserEmail();
+
+        UserResponseDto user =
+                userServiceClient.getUserByEmail(email);
+
+        return incidentRepository
+                .findByAssignedTo(user.getId())
+                .stream()
+                .map(incident ->
+                        modelMapper.map(
+                                incident,
+                                IncidentResponseDto.class))
+                .toList();
+    }
+
+    @Override
+    public List<IncidentResponseDto> getIncidentsByStatus(
+            IncidentStatus status) {
+
+        return incidentRepository
+                .findByStatus(status)
+                .stream()
+                .map(incident ->
+                        modelMapper.map(
+                                incident,
+                                IncidentResponseDto.class))
+                .toList();
+    }
+
+    @Override
+    public List<IncidentResponseDto> getIncidentsByPriority(
+            Priority priority) {
+
+        return incidentRepository
+                .findByPriority(priority)
+                .stream()
+                .map(incident ->
+                        modelMapper.map(
+                                incident,
+                                IncidentResponseDto.class))
+                .toList();
+    }
+
+    @Override
+    public List<IncidentResponseDto> getIncidentsByCategory(
+            Category category) {
+
+        return incidentRepository
+                .findByCategory(category)
+                .stream()
+                .map(incident ->
+                        modelMapper.map(
+                                incident,
+                                IncidentResponseDto.class))
+                .toList();
+    }
+    @Override
+    public IncidentStatsResponseDto getIncidentStats() {
+
+        return IncidentStatsResponseDto.builder()
+
+                .totalIncidents(
+                        incidentRepository.count()
+                )
+
+                .openIncidents(
+                        incidentRepository.countByStatus(
+                                IncidentStatus.OPEN
+                        )
+                )
+
+                .inProgressIncidents(
+                        incidentRepository.countByStatus(
+                                IncidentStatus.IN_PROGRESS
+                        )
+                )
+
+                .resolvedIncidents(
+                        incidentRepository.countByStatus(
+                                IncidentStatus.RESOLVED
+                        )
+                )
+
+                .closedIncidents(
+                        incidentRepository.countByStatus(
+                                IncidentStatus.CLOSED
+                        )
+                )
+
+                .criticalIncidents(
+                        incidentRepository.countByPriority(
+                                Priority.CRITICAL
+                        )
+                )
+
+                .build();
+    }
+
+    @Override
+    public List<IncidentResponseDto> searchIncidents(
+            String keyword) {
+
+        return incidentRepository
+                .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
+                        keyword,
+                        keyword
+                )
+                .stream()
+                .map(incident ->
+                        modelMapper.map(
+                                incident,
+                                IncidentResponseDto.class))
+                .toList();
     }
 }

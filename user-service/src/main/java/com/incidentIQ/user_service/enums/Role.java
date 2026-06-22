@@ -1,6 +1,7 @@
 package com.incidentIQ.user_service.enums;
 
 public enum Role {
-    ADMIN,
-    EMPLOYEE
+    USER,
+    SUPPORT_ENGINEER,
+    ADMIN
 }

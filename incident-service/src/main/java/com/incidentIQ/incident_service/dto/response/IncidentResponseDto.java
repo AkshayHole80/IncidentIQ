@@ -26,5 +26,6 @@ public class IncidentResponseDto {
     private Long createdBy;
 
     private LocalDateTime createdAt;
+    private Long assignedTo;
     private Category category;
-}
+ }

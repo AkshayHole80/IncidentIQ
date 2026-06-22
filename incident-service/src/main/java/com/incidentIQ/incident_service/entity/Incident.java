@@ -37,4 +37,6 @@ public class Incident {
     private LocalDateTime createdAt;
     @Enumerated(EnumType.STRING)
     private Category category;
+
+    private Long assignedTo;
 }
