@@ -2,6 +2,7 @@ package com.incidentIQ.incident_service.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -65,5 +66,20 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(response);
+    }
+    @ExceptionHandler(AiServiceException.class)
+    public ResponseEntity<ErrorResponseDto> handleAiServiceException(
+            AiServiceException ex) {
+
+        ErrorResponseDto error = ErrorResponseDto.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .error("AI Service Unavailable")
+                .message(ex.getMessage())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(error);
     }
 }

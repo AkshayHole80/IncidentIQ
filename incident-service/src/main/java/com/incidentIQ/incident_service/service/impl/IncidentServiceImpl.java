@@ -17,12 +17,14 @@ import com.incidentIQ.incident_service.repository.IncidentRepository;
 import com.incidentIQ.incident_service.security.SecurityUtils;
 import com.incidentIQ.incident_service.service.IncidentService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class IncidentServiceImpl implements IncidentService {
@@ -39,6 +41,8 @@ public class IncidentServiceImpl implements IncidentService {
         String email =
                 SecurityUtils.getCurrentUserEmail();
 
+        log.info("Creating incident for user: {}", email);
+
         UserResponseDto user =
                 userServiceClient.getUserByEmail(email);
 
@@ -46,6 +50,9 @@ public class IncidentServiceImpl implements IncidentService {
         Category category = Category.APPLICATION;
 
         try {
+
+            log.info(
+                    "Calling AI service for incident classification");
 
             AnalyzeIncidentRequestDto aiRequest =
                     new AnalyzeIncidentRequestDto();
@@ -66,14 +73,17 @@ public class IncidentServiceImpl implements IncidentService {
                             aiResponse.getCategory()
                     );
 
+            log.info(
+                    "AI classified incident. Priority={}, Category={}",
+                    priority,
+                    category
+            );
+
         } catch (Exception e) {
 
-            System.out.println("================================");
-            e.printStackTrace();
-            System.out.println("================================");
-
-            System.out.println(
-                    "AI Service unavailable. Using default values."
+            log.error(
+                    "Failed to classify incident using AI service. Using default values.",
+                    e
             );
         }
 
@@ -87,8 +97,18 @@ public class IncidentServiceImpl implements IncidentService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
+        log.info(
+                "Saving incident with title={}",
+                request.getTitle()
+        );
+
         Incident saved =
                 incidentRepository.save(incident);
+
+        log.info(
+                "Incident created successfully with id={}",
+                saved.getId()
+        );
 
         return modelMapper.map(
                 saved,
@@ -98,6 +118,8 @@ public class IncidentServiceImpl implements IncidentService {
 
     @Override
     public IncidentResponseDto getIncidentById(Long id) {
+
+        log.info("Fetching incident with id={}", id);
 
         Incident incident = incidentRepository
                 .findById(id)
@@ -111,9 +133,10 @@ public class IncidentServiceImpl implements IncidentService {
         );
     }
 
-
     @Override
     public List<IncidentResponseDto> getAllIncidents() {
+
+        log.info("Fetching all incidents");
 
         return incidentRepository.findAll()
                 .stream()
@@ -128,6 +151,8 @@ public class IncidentServiceImpl implements IncidentService {
     public IncidentResponseDto updateIncident(
             Long id,
             UpdateIncidentRequestDto request) {
+
+        log.info("Updating incident with id={}", id);
 
         Incident incident = incidentRepository
                 .findById(id)
@@ -149,6 +174,11 @@ public class IncidentServiceImpl implements IncidentService {
         Incident updatedIncident =
                 incidentRepository.save(incident);
 
+        log.info(
+                "Incident updated successfully. Id={}",
+                id
+        );
+
         return modelMapper.map(
                 updatedIncident,
                 IncidentResponseDto.class
@@ -158,6 +188,8 @@ public class IncidentServiceImpl implements IncidentService {
     @Override
     public void deleteIncident(Long id) {
 
+        log.info("Deleting incident with id={}", id);
+
         Incident incident = incidentRepository
                 .findById(id)
                 .orElseThrow(() ->
@@ -165,5 +197,10 @@ public class IncidentServiceImpl implements IncidentService {
                                 "Incident not found with id: " + id));
 
         incidentRepository.delete(incident);
+
+        log.info(
+                "Incident deleted successfully. Id={}",
+                id
+        );
     }
 }

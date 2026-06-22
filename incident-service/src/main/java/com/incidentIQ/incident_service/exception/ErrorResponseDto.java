@@ -1,14 +1,14 @@
 package com.incidentIQ.incident_service.exception;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Builder
+@Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class ErrorResponseDto {
 
     private LocalDateTime timestamp;
