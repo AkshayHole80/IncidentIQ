@@ -12,6 +12,7 @@ import com.incidentIQ.incident_service.entity.Incident;
 import com.incidentIQ.incident_service.enums.Category;
 import com.incidentIQ.incident_service.enums.IncidentStatus;
 import com.incidentIQ.incident_service.enums.Priority;
+import com.incidentIQ.incident_service.exception.ForbiddenException;
 import com.incidentIQ.incident_service.exception.IncidentNotFoundException;
 import com.incidentIQ.incident_service.repository.IncidentRepository;
 import com.incidentIQ.incident_service.security.SecurityUtils;
@@ -126,7 +127,7 @@ public class IncidentServiceImpl implements IncidentService {
                 .orElseThrow(() ->
                         new IncidentNotFoundException(
                                 "Incident not found with id: " + id));
-
+        validateIncidentOwnership(incident);
         return modelMapper.map(
                 incident,
                 IncidentResponseDto.class
@@ -136,9 +137,19 @@ public class IncidentServiceImpl implements IncidentService {
     @Override
     public List<IncidentResponseDto> getAllIncidents() {
 
-        log.info("Fetching all incidents");
+        String email =
+                SecurityUtils.getCurrentUserEmail();
 
-        return incidentRepository.findAll()
+        UserResponseDto user =
+                userServiceClient.getUserByEmail(email);
+
+        log.info(
+                "Fetching incidents for user id={}",
+                user.getId()
+        );
+
+        return incidentRepository
+                .findByCreatedBy(user.getId())
                 .stream()
                 .map(incident ->
                         modelMapper.map(
@@ -146,7 +157,6 @@ public class IncidentServiceImpl implements IncidentService {
                                 IncidentResponseDto.class))
                 .toList();
     }
-
     @Override
     public IncidentResponseDto updateIncident(
             Long id,
@@ -159,7 +169,7 @@ public class IncidentServiceImpl implements IncidentService {
                 .orElseThrow(() ->
                         new IncidentNotFoundException(
                                 "Incident not found with id: " + id));
-
+        validateIncidentOwnership(incident);
         incident.setTitle(request.getTitle());
         incident.setDescription(request.getDescription());
 
@@ -195,12 +205,31 @@ public class IncidentServiceImpl implements IncidentService {
                 .orElseThrow(() ->
                         new IncidentNotFoundException(
                                 "Incident not found with id: " + id));
-
+        validateIncidentOwnership(incident);
         incidentRepository.delete(incident);
 
         log.info(
                 "Incident deleted successfully. Id={}",
                 id
         );
+    }
+
+
+    private void validateIncidentOwnership(
+            Incident incident) {
+
+        String email =
+                SecurityUtils.getCurrentUserEmail();
+
+        UserResponseDto currentUser =
+                userServiceClient.getUserByEmail(email);
+
+        if (!incident.getCreatedBy()
+                .equals(currentUser.getId())) {
+
+            throw new ForbiddenException(
+                    "You are not authorized to access this incident"
+            );
+        }
     }
 }

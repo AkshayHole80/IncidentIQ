@@ -82,4 +82,21 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(error);
     }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponseDto> handleForbiddenException(
+            ForbiddenException ex) {
+
+        ErrorResponseDto error =
+                ErrorResponseDto.builder()
+                        .timestamp(LocalDateTime.parse(LocalDateTime.now().toString()))
+                        .status(HttpStatus.FORBIDDEN.value())
+                        .error("Forbidden")
+                        .message(ex.getMessage())
+                        .build();
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(error);
+    }
 }
