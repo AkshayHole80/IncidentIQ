@@ -16,6 +16,7 @@ import com.incidentIQ.incident_service.enums.IncidentStatus;
 import com.incidentIQ.incident_service.enums.Priority;
 import com.incidentIQ.incident_service.exception.ForbiddenException;
 import com.incidentIQ.incident_service.exception.IncidentNotFoundException;
+import com.incidentIQ.incident_service.exception.UnauthorizedActionException;
 import com.incidentIQ.incident_service.repository.IncidentRepository;
 import com.incidentIQ.incident_service.security.SecurityUtils;
 import com.incidentIQ.incident_service.service.IncidentService;
@@ -240,6 +241,22 @@ public class IncidentServiceImpl implements IncidentService {
             Long id,
             AssignIncidentRequestDto request) {
 
+        String email =
+                SecurityUtils.getCurrentUserEmail();
+
+        UserResponseDto currentUser =
+                userServiceClient.getUserByEmail(
+                        email
+                );
+
+        if (!"ADMIN".equals(
+                currentUser.getRole())) {
+
+            throw new UnauthorizedActionException(
+                    "Only ADMIN can assign incidents"
+            );
+        }
+
         Incident incident =
                 incidentRepository.findById(id)
                         .orElseThrow(() ->
@@ -260,7 +277,6 @@ public class IncidentServiceImpl implements IncidentService {
                 saved,
                 IncidentResponseDto.class);
     }
-
 
     @Override
     public IncidentResponseDto updateStatus(

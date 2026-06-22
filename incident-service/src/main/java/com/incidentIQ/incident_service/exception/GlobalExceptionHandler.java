@@ -99,4 +99,23 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.FORBIDDEN)
                 .body(error);
     }
+
+    @ExceptionHandler(
+            UnauthorizedActionException.class)
+    public ResponseEntity<ErrorResponseDto>
+    handleUnauthorizedActionException(
+            UnauthorizedActionException ex) {
+
+        ErrorResponseDto error =
+                ErrorResponseDto.builder()
+                        .timestamp(LocalDateTime.now())
+                        .status(HttpStatus.FORBIDDEN.value())
+                        .error("Forbidden")
+                        .message(ex.getMessage())
+                        .build();
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(error);
+    }
 }
