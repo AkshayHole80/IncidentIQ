@@ -140,11 +140,8 @@ public class IncidentServiceImpl implements IncidentService {
     @Override
     public List<IncidentResponseDto> getAllIncidents() {
 
-        String email =
-                SecurityUtils.getCurrentUserEmail();
-
         UserResponseDto user =
-                userServiceClient.getUserByEmail(email);
+                getCurrentUser();
 
         log.info(
                 "Fetching incidents for user id={}",
@@ -160,6 +157,7 @@ public class IncidentServiceImpl implements IncidentService {
                                 IncidentResponseDto.class))
                 .toList();
     }
+
     @Override
     public IncidentResponseDto updateIncident(
             Long id,
@@ -221,11 +219,8 @@ public class IncidentServiceImpl implements IncidentService {
     private void validateIncidentOwnership(
             Incident incident) {
 
-        String email =
-                SecurityUtils.getCurrentUserEmail();
-
         UserResponseDto currentUser =
-                userServiceClient.getUserByEmail(email);
+                getCurrentUser();
 
         if (!incident.getCreatedBy()
                 .equals(currentUser.getId())) {
@@ -237,17 +232,8 @@ public class IncidentServiceImpl implements IncidentService {
     }
 
     @Override
-    public IncidentResponseDto assignIncident(
-            Long id,
-            AssignIncidentRequestDto request) {
-
-        String email =
-                SecurityUtils.getCurrentUserEmail();
-
-        UserResponseDto currentUser =
-                userServiceClient.getUserByEmail(
-                        email
-                );
+    public IncidentResponseDto assignIncident(Long id, AssignIncidentRequestDto request) {
+        UserResponseDto currentUser = getCurrentUser();
 
         if (!"ADMIN".equals(
                 currentUser.getRole())) {
@@ -289,10 +275,18 @@ public class IncidentServiceImpl implements IncidentService {
                                 new IncidentNotFoundException(
                                         "Incident not found with id: " + id));
 
+        validateAssignedEngineer(incident);
+
         incident.setStatus(status);
 
         Incident saved =
                 incidentRepository.save(incident);
+
+        log.info(
+                "Incident {} status updated to {}",
+                id,
+                status
+        );
 
         return modelMapper.map(
                 saved,
@@ -302,11 +296,8 @@ public class IncidentServiceImpl implements IncidentService {
     @Override
     public List<IncidentResponseDto> getAssignedIncidents() {
 
-        String email =
-                SecurityUtils.getCurrentUserEmail();
-
         UserResponseDto user =
-                userServiceClient.getUserByEmail(email);
+                getCurrentUser();
 
         return incidentRepository
                 .findByAssignedTo(user.getId())
@@ -417,4 +408,32 @@ public class IncidentServiceImpl implements IncidentService {
                                 IncidentResponseDto.class))
                 .toList();
     }
+
+    private UserResponseDto getCurrentUser() {
+
+        String email =
+                SecurityUtils.getCurrentUserEmail();
+
+        return userServiceClient
+                .getUserByEmail(email);
+    }
+
+    private void validateAssignedEngineer(
+            Incident incident) {
+
+        UserResponseDto currentUser =
+                getCurrentUser();
+
+        if (incident.getAssignedTo() == null ||
+                !incident.getAssignedTo()
+                        .equals(currentUser.getId())) {
+
+            throw new UnauthorizedActionException(
+                    "Only assigned engineer can update incident status"
+            );
+        }
+    }
+
+
+
 }
