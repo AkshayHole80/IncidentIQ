@@ -1,6 +1,7 @@
 package com.incidentIQ.incident_service.controller;
 import com.incidentIQ.incident_service.dto.request.AssignIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.request.CreateIncidentRequestDto;
+import com.incidentIQ.incident_service.dto.request.ResolveIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.request.UpdateIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.response.IncidentResponseDto;
 import com.incidentIQ.incident_service.dto.response.IncidentStatsResponseDto;
@@ -121,5 +122,22 @@ public class IncidentController {
         return incidentService.searchIncidents(
                 keyword
         );
+    }
+
+    @PatchMapping("/{id}/resolve")
+    public IncidentResponseDto resolveIncident(
+            @PathVariable Long id,
+            @RequestBody ResolveIncidentRequestDto request) {
+
+        return incidentService
+                .resolveIncident(id, request);
+    }
+
+    @PatchMapping("/{id}/close")
+    public IncidentResponseDto closeIncident(
+            @PathVariable Long id) {
+
+        return incidentService
+                .closeIncident(id);
     }
 }

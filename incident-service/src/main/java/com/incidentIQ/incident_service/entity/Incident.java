@@ -39,4 +39,7 @@ public class Incident {
     private Category category;
 
     private Long assignedTo;
+
+    @Column(length = 2000)
+    private String resolutionNotes;
 }

@@ -2,6 +2,7 @@ package com.incidentIQ.incident_service.service;
 
 import com.incidentIQ.incident_service.dto.request.AssignIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.request.CreateIncidentRequestDto;
+import com.incidentIQ.incident_service.dto.request.ResolveIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.request.UpdateIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.response.IncidentResponseDto;
 import com.incidentIQ.incident_service.dto.response.IncidentStatsResponseDto;
@@ -51,5 +52,13 @@ public interface IncidentService {
     IncidentStatsResponseDto getIncidentStats();
     List<IncidentResponseDto> searchIncidents(
             String keyword
+    );
+
+    IncidentResponseDto resolveIncident(
+            Long id,
+            ResolveIncidentRequestDto request
+    );
+    IncidentResponseDto closeIncident(
+            Long id
     );
 }

@@ -118,4 +118,31 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.FORBIDDEN)
                 .body(error);
     }
+
+    @ExceptionHandler(
+            IllegalStateException.class)
+    public ResponseEntity<ErrorResponseDto>
+    handleIllegalStateException(
+            IllegalStateException ex) {
+
+        ErrorResponseDto error =
+                ErrorResponseDto.builder()
+                        .timestamp(
+                                LocalDateTime.now()
+                        )
+                        .status(
+                                HttpStatus.BAD_REQUEST.value()
+                        )
+                        .error(
+                                "Invalid Workflow"
+                        )
+                        .message(
+                                ex.getMessage()
+                        )
+                        .build();
+
+        return ResponseEntity
+                .badRequest()
+                .body(error);
+    }
 }

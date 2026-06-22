@@ -2,10 +2,7 @@ package com.incidentIQ.incident_service.service.impl;
 
 import com.incidentIQ.incident_service.client.AiServiceClient;
 import com.incidentIQ.incident_service.client.UserServiceClient;
-import com.incidentIQ.incident_service.dto.request.AnalyzeIncidentRequestDto;
-import com.incidentIQ.incident_service.dto.request.AssignIncidentRequestDto;
-import com.incidentIQ.incident_service.dto.request.CreateIncidentRequestDto;
-import com.incidentIQ.incident_service.dto.request.UpdateIncidentRequestDto;
+import com.incidentIQ.incident_service.dto.request.*;
 import com.incidentIQ.incident_service.dto.response.AnalyzeIncidentResponseDto;
 import com.incidentIQ.incident_service.dto.response.IncidentResponseDto;
 import com.incidentIQ.incident_service.dto.response.IncidentStatsResponseDto;
@@ -434,6 +431,90 @@ public class IncidentServiceImpl implements IncidentService {
         }
     }
 
+    @Override
+    public IncidentResponseDto resolveIncident(
+            Long id,
+            ResolveIncidentRequestDto request) {
 
+        Incident incident =
+                incidentRepository.findById(id)
+                        .orElseThrow(() ->
+                                new IncidentNotFoundException(
+                                        "Incident not found with id: " + id));
+
+        validateAssignedEngineer(incident);
+
+        if (incident.getStatus()
+                != IncidentStatus.IN_PROGRESS) {
+
+            throw new IllegalStateException(
+                    "Only IN_PROGRESS incidents can be resolved"
+            );
+        }
+
+        incident.setResolutionNotes(
+                request.getResolutionNotes());
+
+        incident.setStatus(
+                IncidentStatus.RESOLVED);
+
+        Incident saved =
+                incidentRepository.save(
+                        incident);
+
+        return modelMapper.map(
+                saved,
+                IncidentResponseDto.class);
+    }
+
+    @Override
+    public IncidentResponseDto closeIncident(
+            Long id) {
+
+        UserResponseDto currentUser =
+                getCurrentUser();
+
+        if (!"ADMIN".equals(
+                currentUser.getRole())) {
+
+            throw new UnauthorizedActionException(
+                    "Only ADMIN can close incidents"
+            );
+        }
+
+        Incident incident =
+                incidentRepository.findById(id)
+                        .orElseThrow(() ->
+                                new IncidentNotFoundException(
+                                        "Incident not found with id: " + id));
+
+        if (incident.getStatus()
+                != IncidentStatus.RESOLVED) {
+
+            throw new IllegalStateException(
+                    "Only RESOLVED incidents can be closed"
+            );
+        }
+
+        incident.setStatus(
+                IncidentStatus.CLOSED
+        );
+
+        Incident saved =
+                incidentRepository.save(
+                        incident
+                );
+
+        log.info(
+                "Incident {} closed by admin {}",
+                id,
+                currentUser.getEmail()
+        );
+
+        return modelMapper.map(
+                saved,
+                IncidentResponseDto.class
+        );
+    }
 
 }

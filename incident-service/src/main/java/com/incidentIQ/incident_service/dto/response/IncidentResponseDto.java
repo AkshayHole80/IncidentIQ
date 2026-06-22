@@ -28,4 +28,5 @@ public class IncidentResponseDto {
     private LocalDateTime createdAt;
     private Long assignedTo;
     private Category category;
+    private String resolutionNotes;
  }
