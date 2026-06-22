@@ -1,4 +1,5 @@
 package com.incidentIQ.incident_service.dto.response;
+import com.incidentIQ.incident_service.enums.Category;
 import com.incidentIQ.incident_service.enums.IncidentStatus;
 import com.incidentIQ.incident_service.enums.Priority;
 import lombok.*;
@@ -25,4 +26,5 @@ public class IncidentResponseDto {
     private Long createdBy;
 
     private LocalDateTime createdAt;
+    private Category category;
 }

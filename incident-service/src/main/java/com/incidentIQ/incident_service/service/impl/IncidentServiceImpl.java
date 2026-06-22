@@ -1,11 +1,15 @@
 package com.incidentIQ.incident_service.service.impl;
 
+import com.incidentIQ.incident_service.client.AiServiceClient;
 import com.incidentIQ.incident_service.client.UserServiceClient;
+import com.incidentIQ.incident_service.dto.request.AnalyzeIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.request.CreateIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.request.UpdateIncidentRequestDto;
+import com.incidentIQ.incident_service.dto.response.AnalyzeIncidentResponseDto;
 import com.incidentIQ.incident_service.dto.response.IncidentResponseDto;
 import com.incidentIQ.incident_service.dto.response.UserResponseDto;
 import com.incidentIQ.incident_service.entity.Incident;
+import com.incidentIQ.incident_service.enums.Category;
 import com.incidentIQ.incident_service.enums.IncidentStatus;
 import com.incidentIQ.incident_service.enums.Priority;
 import com.incidentIQ.incident_service.exception.IncidentNotFoundException;
@@ -26,6 +30,7 @@ public class IncidentServiceImpl implements IncidentService {
     private final IncidentRepository incidentRepository;
     private final ModelMapper modelMapper;
     private final UserServiceClient userServiceClient;
+    private final AiServiceClient aiServiceClient;
 
     @Override
     public IncidentResponseDto createIncident(
@@ -37,13 +42,46 @@ public class IncidentServiceImpl implements IncidentService {
         UserResponseDto user =
                 userServiceClient.getUserByEmail(email);
 
-        System.out.println("User ID = "
-                + user.getId());
+        Priority priority = Priority.MEDIUM;
+        Category category = Category.APPLICATION;
+
+        try {
+
+            AnalyzeIncidentRequestDto aiRequest =
+                    new AnalyzeIncidentRequestDto();
+
+            aiRequest.setTitle(request.getTitle());
+            aiRequest.setDescription(request.getDescription());
+
+            AnalyzeIncidentResponseDto aiResponse =
+                    aiServiceClient.analyzeIncident(aiRequest);
+
+            priority =
+                    Priority.valueOf(
+                            aiResponse.getPriority()
+                    );
+
+            category =
+                    Category.valueOf(
+                            aiResponse.getCategory()
+                    );
+
+        } catch (Exception e) {
+
+            System.out.println("================================");
+            e.printStackTrace();
+            System.out.println("================================");
+
+            System.out.println(
+                    "AI Service unavailable. Using default values."
+            );
+        }
 
         Incident incident = Incident.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .priority(Priority.MEDIUM)
+                .priority(priority)
+                .category(category)
                 .status(IncidentStatus.OPEN)
                 .createdBy(user.getId())
                 .createdAt(LocalDateTime.now())
@@ -54,7 +92,8 @@ public class IncidentServiceImpl implements IncidentService {
 
         return modelMapper.map(
                 saved,
-                IncidentResponseDto.class);
+                IncidentResponseDto.class
+        );
     }
 
     @Override

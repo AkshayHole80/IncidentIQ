@@ -1,5 +1,6 @@
 package com.incidentIQ.incident_service.entity;
 
+import com.incidentIQ.incident_service.enums.Category;
 import com.incidentIQ.incident_service.enums.IncidentStatus;
 import com.incidentIQ.incident_service.enums.Priority;
 import jakarta.persistence.*;
@@ -34,4 +35,6 @@ public class Incident {
     private Long createdBy;
 
     private LocalDateTime createdAt;
+    @Enumerated(EnumType.STRING)
+    private Category category;
 }
