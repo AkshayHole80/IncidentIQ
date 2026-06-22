@@ -10,4 +10,6 @@ import lombok.*;
 public class AuthResponseDto {
 
     private String token;
+    private String role;
+
 }

@@ -9,6 +9,22 @@ spring:
     gateway:
       server:
         webflux:
+
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                  - "http://localhost:5173"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - PATCH
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders: "*"
+                allowCredentials: true
+
           routes:
 
             - id: user-service
@@ -25,11 +41,3 @@ spring:
               uri: lb://AI-SERVICE
               predicates:
                 - Path=/api/v1/ai/**
-
-eureka:
-  instance:
-    hostname: localhost
-    prefer-ip-address: true
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka

@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
@@ -20,5 +22,18 @@ public class UserController {
             @PathVariable String email) {
 
         return userService.getUserByEmail(email);
+    }
+    @GetMapping("/me")
+    public UserResponseDto getCurrentUser() {
+
+        return userService
+                .getCurrentUser();
+    }
+    @GetMapping("/support-engineers")
+    public List<UserResponseDto>
+    getSupportEngineers() {
+
+        return userService
+                .getSupportEngineers();
     }
 }

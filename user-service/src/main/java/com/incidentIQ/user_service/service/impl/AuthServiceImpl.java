@@ -51,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
 
         return AuthResponseDto.builder()
                 .token(token)
+                .role(user.getRole().name())
                 .build();
     }
 
@@ -73,6 +74,7 @@ public class AuthServiceImpl implements AuthService {
 
         return AuthResponseDto.builder()
                 .token(token)
+                .role(user.getRole().name())
                 .build();
     }
 }

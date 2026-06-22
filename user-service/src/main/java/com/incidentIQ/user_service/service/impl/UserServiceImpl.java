@@ -2,17 +2,23 @@ package com.incidentIQ.user_service.service.impl;
 
 import com.incidentIQ.user_service.dto.response.UserResponseDto;
 import com.incidentIQ.user_service.entity.User;
+import com.incidentIQ.user_service.enums.Role;
 import com.incidentIQ.user_service.exception.ResourceNotFoundException;
 import com.incidentIQ.user_service.repository.UserRepository;
 import com.incidentIQ.user_service.service.UserService;
 
+import com.incidentIQ.user_service.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
     @Override
     public UserResponseDto getUserByEmail(String email) {
 
@@ -28,5 +34,37 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .role(user.getRole())
                 .build();
+    }
+
+    @Override
+    public UserResponseDto getCurrentUser() {
+
+        String email =
+                SecurityUtils.getCurrentUserEmail();
+
+        User user =
+                userRepository.findByEmail(email)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "User not found"
+                                ));
+
+        return modelMapper.map(
+                user,
+                UserResponseDto.class
+        );
+    }
+
+    @Override
+    public List<UserResponseDto> getSupportEngineers() {
+
+        return userRepository
+                .findByRole(Role.SUPPORT_ENGINEER)
+                .stream()
+                .map(user ->
+                        modelMapper.map(
+                                user,
+                                UserResponseDto.class))
+                .toList();
     }
 }
