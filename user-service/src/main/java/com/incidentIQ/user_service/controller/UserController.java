@@ -43,4 +43,9 @@ public class UserController {
 
         return userService.getUserById(id);
     }
+    @GetMapping("/admins")
+    public List<UserResponseDto> getAdmins() {
+
+        return userService.getAdmins();
+    }
 }

@@ -1,6 +1,7 @@
 package com.incidentIQ.incident_service.service.impl;
 
 import com.incidentIQ.incident_service.client.AiServiceClient;
+import com.incidentIQ.incident_service.client.NotificationServiceClient;
 import com.incidentIQ.incident_service.client.UserServiceClient;
 import com.incidentIQ.incident_service.dto.request.*;
 import com.incidentIQ.incident_service.dto.response.AnalyzeIncidentResponseDto;
@@ -34,6 +35,7 @@ public class IncidentServiceImpl implements IncidentService {
     private final ModelMapper modelMapper;
     private final UserServiceClient userServiceClient;
     private final AiServiceClient aiServiceClient;
+    private final NotificationServiceClient notificationServiceClient;
 
     @Override
     public IncidentResponseDto createIncident(
@@ -265,6 +267,16 @@ public class IncidentServiceImpl implements IncidentService {
         Incident saved =
                 incidentRepository.save(
                         incident);
+        notificationServiceClient.createNotification(
+                CreateNotificationRequestDto.builder()
+                        .userId(request.getAssignedTo())
+                        .title("Incident Assigned")
+                        .message(
+                                "You have been assigned incident #"
+                                        + saved.getId()
+                        )
+                        .build()
+        );
 
         return modelMapper.map(
                 saved,
@@ -471,7 +483,23 @@ public class IncidentServiceImpl implements IncidentService {
         Incident saved =
                 incidentRepository.save(
                         incident);
+        List<UserResponseDto> admins =
+                userServiceClient.getAdmins();
 
+        for (UserResponseDto admin : admins) {
+
+            notificationServiceClient.createNotification(
+                    CreateNotificationRequestDto.builder()
+                            .userId(admin.getId())
+                            .title("Incident Resolved")
+                            .message(
+                                    "Incident #"
+                                            + saved.getId()
+                                            + " has been resolved"
+                            )
+                            .build()
+            );
+        }
         return modelMapper.map(
                 saved,
                 IncidentResponseDto.class);
@@ -514,6 +542,20 @@ public class IncidentServiceImpl implements IncidentService {
                 incidentRepository.save(
                         incident
                 );
+
+        notificationServiceClient.createNotification(
+                CreateNotificationRequestDto.builder()
+                        .userId(
+                                incident.getCreatedBy()
+                        )
+                        .title("Incident Closed")
+                        .message(
+                                "Your incident #"
+                                        + saved.getId()
+                                        + " has been closed"
+                        )
+                        .build()
+        );
 
         log.info(
                 "Incident {} closed by admin {}",

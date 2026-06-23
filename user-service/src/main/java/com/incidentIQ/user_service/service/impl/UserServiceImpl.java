@@ -82,4 +82,16 @@ public class UserServiceImpl implements UserService {
                 UserResponseDto.class
         );
     }
+    @Override
+    public List<UserResponseDto> getAdmins() {
+
+        return userRepository
+                .findByRole(Role.ADMIN)
+                .stream()
+                .map(user ->
+                        modelMapper.map(
+                                user,
+                                UserResponseDto.class))
+                .toList();
+    }
 }

@@ -5,6 +5,8 @@ package com.incidentIQ.incident_service.client;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+ import java.util.List;
+
 @FeignClient(name = "USER-SERVICE")
 public interface UserServiceClient {
 
@@ -12,4 +14,7 @@ public interface UserServiceClient {
     UserResponseDto getUserByEmail(
             @PathVariable("email") String email
     );
+
+    @GetMapping("/api/v1/users/admins")
+    List<UserResponseDto> getAdmins();
 }

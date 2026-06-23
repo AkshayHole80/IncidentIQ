@@ -9,4 +9,5 @@ public interface UserService {
     UserResponseDto getCurrentUser();
     List<UserResponseDto> getSupportEngineers();
     UserResponseDto getUserById(Long id);
+    List<UserResponseDto> getAdmins();
 }
