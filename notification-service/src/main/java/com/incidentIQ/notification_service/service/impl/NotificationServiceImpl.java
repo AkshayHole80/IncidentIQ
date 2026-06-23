@@ -7,6 +7,7 @@ import com.incidentIQ.notification_service.repository.NotificationRepository;
 import com.incidentIQ.notification_service.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,6 +20,8 @@ public class NotificationServiceImpl
 
     private final NotificationRepository notificationRepository;
     private final ModelMapper modelMapper;
+    private final SimpMessagingTemplate messagingTemplate;
+
 
     @Override
     public NotificationResponseDto createNotification(
@@ -35,6 +38,10 @@ public class NotificationServiceImpl
 
         Notification saved =
                 notificationRepository.save(notification);
+        messagingTemplate.convertAndSend(
+                "/topic/notifications/" + saved.getUserId(),
+                saved
+        );
 
         return modelMapper.map(
                 saved,
