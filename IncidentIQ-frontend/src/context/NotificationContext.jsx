@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { notification } from 'antd';
+import { BellOutlined } from '@ant-design/icons';
 import { useAuth } from './AuthContext';
 import { getNotifications, getUnreadCount, markAsRead } from '../services/notificationService';
+import { connectWebSocket, disconnectWebSocket } from '../services/websocket';
 
 const NotificationContext = createContext(null);
 
@@ -97,7 +100,62 @@ export const NotificationProvider = ({ children }) => {
     }
   }, [user?.id, loadNotifications]);
 
-  // Set up 30-second polling for unread count
+  // Set up real-time WebSocket notifications with auto-reconnection
+  useEffect(() => {
+    if (!user?.id) {
+      disconnectWebSocket();
+      return;
+    }
+
+    let reconnectTimeout = null;
+
+    const startConnection = () => {
+      connectWebSocket(
+        user.id,
+        // onNotificationReceived
+        (newNotification) => {
+          // Trigger Ant Design toast popup
+          notification.open({
+            message: newNotification.title,
+            description: newNotification.message,
+            icon: <BellOutlined className="text-blue-500" />,
+            placement: 'topRight',
+            duration: 5,
+          });
+
+          // Prepend to notifications list ensuring no duplicates
+          setNotifications((prev) => {
+            if (prev.some((n) => n.id === newNotification.id)) {
+              return prev;
+            }
+            return [newNotification, ...prev];
+          });
+
+          // Increment unread count instantly
+          setUnreadCount((prev) => prev + 1);
+        },
+        // onError callback
+        (err) => {
+          console.warn('WebSocket STOMP error, scheduling reconnect in 5s...', err);
+          disconnectWebSocket();
+          reconnectTimeout = setTimeout(() => {
+            startConnection();
+          }, 5000);
+        }
+      );
+    };
+
+    startConnection();
+
+    return () => {
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
+      disconnectWebSocket();
+    };
+  }, [user?.id]);
+
+  // Set up 30-second polling for unread count (acts as sync fallback)
   useEffect(() => {
     if (!user?.id) return;
 
