@@ -8,4 +8,5 @@ public interface UserService {
     UserResponseDto getUserByEmail(String email);
     UserResponseDto getCurrentUser();
     List<UserResponseDto> getSupportEngineers();
+    UserResponseDto getUserById(Long id);
 }

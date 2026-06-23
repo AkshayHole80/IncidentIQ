@@ -36,4 +36,11 @@ public class UserController {
         return userService
                 .getSupportEngineers();
     }
+
+    @GetMapping("/{id}")
+    public UserResponseDto getUserById(
+            @PathVariable Long id) {
+
+        return userService.getUserById(id);
+    }
 }

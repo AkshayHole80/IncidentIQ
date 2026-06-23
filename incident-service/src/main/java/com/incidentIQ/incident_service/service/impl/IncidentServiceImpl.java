@@ -127,7 +127,7 @@ public class IncidentServiceImpl implements IncidentService {
                 .orElseThrow(() ->
                         new IncidentNotFoundException(
                                 "Incident not found with id: " + id));
-        validateIncidentOwnership(incident);
+        validateIncidentAccess(incident);
         return modelMapper.map(
                 incident,
                 IncidentResponseDto.class
@@ -515,6 +515,35 @@ public class IncidentServiceImpl implements IncidentService {
                 saved,
                 IncidentResponseDto.class
         );
+    }
+
+    private void validateIncidentAccess(
+            Incident incident) {
+
+        UserResponseDto currentUser =
+                getCurrentUser();
+
+        if ("ADMIN".equals(
+                currentUser.getRole())) {
+
+            return;
+        }
+
+        boolean isCreator =
+                incident.getCreatedBy()
+                        .equals(currentUser.getId());
+
+        boolean isAssigned =
+                incident.getAssignedTo() != null
+                        && incident.getAssignedTo()
+                        .equals(currentUser.getId());
+
+        if (!isCreator && !isAssigned) {
+
+            throw new ForbiddenException(
+                    "You are not authorized to access this incident"
+            );
+        }
     }
 
 }

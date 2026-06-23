@@ -67,4 +67,19 @@ public class UserServiceImpl implements UserService {
                                 UserResponseDto.class))
                 .toList();
     }
+    @Override
+    public UserResponseDto getUserById(Long id) {
+
+        User user = userRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found with id: " + id
+                        ));
+
+        return modelMapper.map(
+                user,
+                UserResponseDto.class
+        );
+    }
 }
