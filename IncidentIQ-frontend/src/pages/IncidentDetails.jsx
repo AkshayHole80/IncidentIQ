@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Descriptions, Tag, Button, Steps, Space, Typography, Skeleton, Alert, Modal, Form, Select, Input, message, Grid, Row, Col, Badge } from 'antd';
-import { ArrowLeftOutlined, InfoCircleOutlined, UserAddOutlined, CheckSquareOutlined, CloseCircleOutlined, RobotOutlined, UserOutlined, CalendarOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Card, Descriptions, Tag, Button, Steps, Space, Typography, Skeleton, Alert, Modal, Form, Select, Input, message, Grid, Row, Col, Badge, Popconfirm } from 'antd';
+import { ArrowLeftOutlined, InfoCircleOutlined, UserAddOutlined, CheckSquareOutlined, CloseCircleOutlined, RobotOutlined, UserOutlined, CalendarOutlined, CheckCircleOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axiosConfig';
+import { updateIncident, deleteIncident } from '../services/incidentService';
 
 const { Title, Paragraph, Text } = Typography;
 const { Option } = Select;
@@ -31,8 +32,42 @@ const IncidentDetails = () => {
   const [resolveModalOpen, setResolveModalOpen] = useState(false);
   const [resolveLoading, setResolveLoading] = useState(false);
 
+  // Edit Incident States
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+
   const [form] = Form.useForm();
   const [resolveForm] = Form.useForm();
+  const [editForm] = Form.useForm();
+
+  const handleEditSubmit = async (values) => {
+    setEditLoading(true);
+    try {
+      await updateIncident(id, {
+        title: values.title,
+        description: values.description,
+      });
+      message.success('Incident updated successfully!');
+      setEditModalOpen(false);
+      fetchIncidentDetails();
+    } catch (err) {
+      console.error('Failed to update incident', err);
+      message.error(err.response?.data?.message || 'Failed to update incident.');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteIncident(id);
+      message.success('Incident deleted successfully!');
+      navigate('/my-incidents');
+    } catch (err) {
+      console.error('Failed to delete incident', err);
+      message.error(err.response?.data?.message || 'Failed to delete incident.');
+    }
+  };
 
   const fetchIncidentDetails = async () => {
     setLoading(true);
@@ -292,6 +327,35 @@ const IncidentDetails = () => {
           {/* Dynamic Contextual actions bottom toolbar */}
           <div className="flex justify-end border-t border-zinc-100 dark:border-zinc-800 pt-5 mt-5">
             <Space>
+              {/* Creator Edit/Delete Actions */}
+              {incident.createdBy === user?.id && incident.status === 'OPEN' && (
+                <>
+                  <Button 
+                    icon={<EditOutlined />} 
+                    onClick={() => {
+                      editForm.setFieldsValue({
+                        title: incident.title,
+                        description: incident.description,
+                      });
+                      setEditModalOpen(true);
+                    }}
+                  >
+                    Edit Incident
+                  </Button>
+                  <Popconfirm
+                    title="Are you sure you want to delete this incident?"
+                    onConfirm={handleDeleteConfirm}
+                    okText="Yes"
+                    cancelText="No"
+                    okButtonProps={{ danger: true }}
+                  >
+                    <Button type="primary" danger icon={<DeleteOutlined />}>
+                      Delete Incident
+                    </Button>
+                  </Popconfirm>
+                </>
+              )}
+
               {/* Admin Actions */}
               {user?.role === 'ADMIN' && incident.status === 'OPEN' && (
                 <Button type="primary" icon={<UserAddOutlined />} onClick={() => setAssignModalOpen(true)}>
@@ -391,6 +455,58 @@ const IncidentDetails = () => {
                 className="!bg-green-500 !border-green-500 hover:!bg-green-600 hover:!border-green-600 text-white"
               >
                 Resolve Ticket
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Edit Modal Dialog */}
+      <Modal
+        open={editModalOpen}
+        title={<Title level={4} className="!m-0">Edit Incident Details</Title>}
+        onCancel={() => setEditModalOpen(false)}
+        footer={null}
+        destroyOnClose
+      >
+        <Form
+          form={editForm}
+          name="details_edit_incident"
+          onFinish={handleEditSubmit}
+          layout="vertical"
+          className="mt-4"
+        >
+          <Form.Item
+            name="title"
+            label="Incident Title"
+            rules={[
+              { required: true, message: 'Please enter a title!' },
+              { min: 5, message: 'Title must be at least 5 characters long!' }
+            ]}
+          >
+            <Input placeholder="Enter brief title of the issue" />
+          </Form.Item>
+
+          <Form.Item
+            name="description"
+            label="Detailed Description"
+            rules={[
+              { required: true, message: 'Please enter a description!' },
+              { min: 10, message: 'Description must be at least 10 characters long!' }
+            ]}
+          >
+            <Input.TextArea rows={6} placeholder="Describe the steps to reproduce or issue details..." />
+          </Form.Item>
+
+          <Form.Item className="text-right !mb-0">
+            <Space>
+              <Button onClick={() => setEditModalOpen(false)}>Cancel</Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={editLoading}
+              >
+                Save Changes
               </Button>
             </Space>
           </Form.Item>

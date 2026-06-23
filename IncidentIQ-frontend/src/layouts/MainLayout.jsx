@@ -93,11 +93,23 @@ const MainLayout = ({ children }) => {
         label: <Link to="/incidents/assigned">Assigned Incidents</Link>,
       });
     } else if (role === 'ADMIN') {
-      items.push({
-        key: '/incidents/all',
-        icon: <FileTextOutlined />,
-        label: <Link to="/incidents/all">All Incidents</Link>,
-      });
+      items.push(
+        {
+          key: '/incidents/all',
+          icon: <FileTextOutlined />,
+          label: <Link to="/incidents/all">All Incidents</Link>,
+        },
+        {
+          key: '/incidents/create',
+          icon: <PlusCircleOutlined />,
+          label: <Link to="/incidents/create">Create Incident</Link>,
+        },
+        {
+          key: '/incidents/my',
+          icon: <FileTextOutlined />,
+          label: <Link to="/incidents/my">My Incidents</Link>,
+        }
+      );
     }
 
     return items;
@@ -112,13 +124,12 @@ const MainLayout = ({ children }) => {
           <div className="text-xs text-gray-500">{user?.email}</div>
           <div className="text-[10px] mt-1">
             <span
-              className={`inline-block border font-bold rounded px-1.5 py-0.5 text-[10px] ${
-                user?.role === 'ADMIN'
+              className={`inline-block border font-bold rounded px-1.5 py-0.5 text-[10px] ${user?.role === 'ADMIN'
                   ? 'text-red-500 bg-red-500/10 border-red-500/20'
                   : user?.role === 'SUPPORT_ENGINEER'
                     ? 'text-blue-500 bg-blue-500/10 border-blue-500/20'
                     : 'text-green-500 bg-green-500/10 border-green-500/20'
-              }`}
+                }`}
             >
               {user?.role}
             </span>
@@ -178,11 +189,9 @@ const MainLayout = ({ children }) => {
         className={`shadow-sm border-r ${darkMode ? 'border-zinc-800' : 'border-gray-200'}`}
       >
         <div
-          className={`h-16 flex items-center transition-all duration-200 border-b ${
-            collapsed ? 'justify-center pl-0' : 'justify-start pl-6'
-          } ${
-            darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-200'
-          }`}
+          className={`h-16 flex items-center transition-all duration-200 border-b ${collapsed ? 'justify-center pl-0' : 'justify-start pl-6'
+            } ${darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-200'
+            }`}
         >
           <SafetyCertificateOutlined className={`text-2xl text-blue-500 ${collapsed ? 'mr-0' : 'mr-3'}`} />
           {!collapsed && (
@@ -201,9 +210,8 @@ const MainLayout = ({ children }) => {
       </Sider>
       <Layout>
         <Header
-          className={`px-6 flex justify-between items-center shadow-sm z-10 border-b h-16 ${
-            darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-100'
-          }`}
+          className={`px-6 flex justify-between items-center shadow-sm z-10 border-b h-16 ${darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-100'
+            }`}
         >
           <Button
             type="text"

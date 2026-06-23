@@ -1,16 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Tag, Button, Card, Space, Typography, Tooltip, Alert } from 'antd';
-import { FileTextOutlined, EyeOutlined, SyncOutlined } from '@ant-design/icons';
+import { Table, Tag, Button, Card, Space, Typography, Tooltip, Alert, Modal, Form, Input, Popconfirm, message } from 'antd';
+import { FileTextOutlined, EyeOutlined, SyncOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
+import { useAuth } from '../context/AuthContext';
+import { updateIncident, deleteIncident } from '../services/incidentService';
 
 const { Title, Paragraph } = Typography;
 
 const MyIncidents = () => {
+  const { user } = useAuth();
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  // Edit / Delete states
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingIncident, setEditingIncident] = useState(null);
+  const [editLoading, setEditLoading] = useState(false);
+  const [form] = Form.useForm();
+
+  const handleEditSubmit = async (values) => {
+    if (!editingIncident) return;
+    setEditLoading(true);
+    try {
+      await updateIncident(editingIncident.id, {
+        title: values.title,
+        description: values.description,
+      });
+      message.success('Incident updated successfully!');
+      setEditModalOpen(false);
+      setEditingIncident(null);
+      fetchMyIncidents();
+    } catch (err) {
+      console.error('Failed to update incident', err);
+      message.error(err.response?.data?.message || 'Failed to update incident.');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleDeleteConfirm = async (id) => {
+    try {
+      await deleteIncident(id);
+      message.success('Incident deleted successfully!');
+      setIncidents(prev => prev.filter(inc => inc.id !== id));
+    } catch (err) {
+      console.error('Failed to delete incident', err);
+      message.error(err.response?.data?.message || 'Failed to delete incident.');
+    }
+  };
 
   const fetchMyIncidents = async () => {
     setLoading(true);
@@ -103,17 +143,59 @@ const MyIncidents = () => {
     {
       title: 'Actions',
       key: 'actions',
-      width: '100px',
-      render: (_, record) => (
-        <Tooltip title="View Details">
-          <Button
-            type="primary"
-            shape="circle"
-            icon={<EyeOutlined />}
-            onClick={() => navigate(`/incidents/${record.id}`)}
-          />
-        </Tooltip>
-      ),
+      width: '160px',
+      render: (_, record) => {
+        const isCreator = record.createdBy === user?.id;
+        const isOpen = record.status === 'OPEN';
+        const canEditOrDelete = isCreator && isOpen;
+
+        return (
+          <Space size="middle">
+            <Tooltip title="View Details">
+              <Button
+                type="primary"
+                shape="circle"
+                icon={<EyeOutlined />}
+                onClick={() => navigate(`/incidents/${record.id}`)}
+              />
+            </Tooltip>
+            {canEditOrDelete && (
+              <>
+                <Tooltip title="Edit Incident">
+                  <Button
+                    shape="circle"
+                    icon={<EditOutlined />}
+                    onClick={() => {
+                      setEditingIncident(record);
+                      form.setFieldsValue({
+                        title: record.title,
+                        description: record.description,
+                      });
+                      setEditModalOpen(true);
+                    }}
+                  />
+                </Tooltip>
+                <Tooltip title="Delete Incident">
+                  <Popconfirm
+                    title="Are you sure you want to delete this incident?"
+                    onConfirm={() => handleDeleteConfirm(record.id)}
+                    okText="Yes"
+                    cancelText="No"
+                    okButtonProps={{ danger: true }}
+                  >
+                    <Button
+                      type="primary"
+                      danger
+                      shape="circle"
+                      icon={<DeleteOutlined />}
+                    />
+                  </Popconfirm>
+                </Tooltip>
+              </>
+            )}
+          </Space>
+        );
+      },
     },
   ];
 
@@ -156,6 +238,62 @@ const MyIncidents = () => {
           locale={{ emptyText: 'You have not reported any incidents yet.' }}
         />
       </Card>
+
+      {/* Edit Incident Modal */}
+      <Modal
+        open={editModalOpen}
+        title={<Title level={4} className="!m-0">Edit Incident</Title>}
+        onCancel={() => {
+          setEditModalOpen(false);
+          setEditingIncident(null);
+        }}
+        footer={null}
+        destroyOnClose
+      >
+        <Form
+          form={form}
+          name="edit_incident_form"
+          onFinish={handleEditSubmit}
+          layout="vertical"
+          className="mt-4"
+        >
+          <Form.Item
+            name="title"
+            label="Incident Title"
+            rules={[
+              { required: true, message: 'Please enter a title!' },
+              { min: 5, message: 'Title must be at least 5 characters long!' }
+            ]}
+          >
+            <Input placeholder="Enter brief title of the issue" />
+          </Form.Item>
+
+          <Form.Item
+            name="description"
+            label="Detailed Description"
+            rules={[
+              { required: true, message: 'Please enter a description!' },
+              { min: 10, message: 'Description must be at least 10 characters long!' }
+            ]}
+          >
+            <Input.TextArea rows={6} placeholder="Describe the steps to reproduce or issue details..." />
+          </Form.Item>
+
+          <Form.Item className="text-right !mb-0">
+            <Space>
+              <Button onClick={() => {
+                setEditModalOpen(false);
+                setEditingIncident(null);
+              }}>
+                Cancel
+              </Button>
+              <Button type="primary" htmlType="submit" loading={editLoading}>
+                Save Changes
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

@@ -167,17 +167,18 @@ public class IncidentServiceImpl implements IncidentService {
                 .orElseThrow(() ->
                         new IncidentNotFoundException(
                                 "Incident not found with id: " + id));
+
         validateIncidentOwnership(incident);
+
+        if (incident.getStatus() != IncidentStatus.OPEN) {
+
+            throw new UnauthorizedActionException(
+                    "Only OPEN incidents can be edited"
+            );
+        }
+
         incident.setTitle(request.getTitle());
         incident.setDescription(request.getDescription());
-
-        if (request.getPriority() != null) {
-            incident.setPriority(request.getPriority());
-        }
-
-        if (request.getStatus() != null) {
-            incident.setStatus(request.getStatus());
-        }
 
         Incident updatedIncident =
                 incidentRepository.save(incident);
@@ -203,7 +204,16 @@ public class IncidentServiceImpl implements IncidentService {
                 .orElseThrow(() ->
                         new IncidentNotFoundException(
                                 "Incident not found with id: " + id));
+
         validateIncidentOwnership(incident);
+
+        if (incident.getStatus() != IncidentStatus.OPEN) {
+
+            throw new UnauthorizedActionException(
+                    "Only OPEN incidents can be deleted"
+            );
+        }
+
         incidentRepository.delete(incident);
 
         log.info(

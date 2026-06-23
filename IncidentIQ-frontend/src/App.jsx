@@ -48,7 +48,7 @@ function AppContent() {
         <Route
           path="/incidents/create"
           element={
-            <ProtectedRoute allowedRoles={['USER']}>
+            <ProtectedRoute allowedRoles={['USER', 'ADMIN']}>
               <MainLayout>
                 <CreateIncident />
               </MainLayout>
@@ -59,7 +59,7 @@ function AppContent() {
         <Route
           path="/incidents/my"
           element={
-            <ProtectedRoute allowedRoles={['USER']}>
+            <ProtectedRoute allowedRoles={['USER', 'ADMIN']}>
               <MainLayout>
                 <MyIncidents />
               </MainLayout>
