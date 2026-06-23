@@ -1,7 +1,6 @@
 package com.incidentIQ.incident_service.service.impl;
 
 import com.incidentIQ.incident_service.client.AiServiceClient;
-import com.incidentIQ.incident_service.client.NotificationServiceClient;
 import com.incidentIQ.incident_service.client.UserServiceClient;
 import com.incidentIQ.incident_service.dto.request.*;
 import com.incidentIQ.incident_service.dto.response.AnalyzeIncidentResponseDto;
@@ -12,9 +11,11 @@ import com.incidentIQ.incident_service.entity.Incident;
 import com.incidentIQ.incident_service.enums.Category;
 import com.incidentIQ.incident_service.enums.IncidentStatus;
 import com.incidentIQ.incident_service.enums.Priority;
+import com.incidentIQ.incident_service.event.IncidentNotificationEvent;
 import com.incidentIQ.incident_service.exception.ForbiddenException;
 import com.incidentIQ.incident_service.exception.IncidentNotFoundException;
 import com.incidentIQ.incident_service.exception.UnauthorizedActionException;
+import com.incidentIQ.incident_service.kafka.KafkaProducerService;
 import com.incidentIQ.incident_service.repository.IncidentRepository;
 import com.incidentIQ.incident_service.security.SecurityUtils;
 import com.incidentIQ.incident_service.service.IncidentService;
@@ -35,7 +36,7 @@ public class IncidentServiceImpl implements IncidentService {
     private final ModelMapper modelMapper;
     private final UserServiceClient userServiceClient;
     private final AiServiceClient aiServiceClient;
-    private final NotificationServiceClient notificationServiceClient;
+    private final KafkaProducerService kafkaProducerService;
 
     @Override
     public IncidentResponseDto createIncident(
@@ -267,8 +268,8 @@ public class IncidentServiceImpl implements IncidentService {
         Incident saved =
                 incidentRepository.save(
                         incident);
-        notificationServiceClient.createNotification(
-                CreateNotificationRequestDto.builder()
+        kafkaProducerService.sendNotification(
+                IncidentNotificationEvent.builder()
                         .userId(request.getAssignedTo())
                         .title("Incident Assigned")
                         .message(
@@ -488,8 +489,8 @@ public class IncidentServiceImpl implements IncidentService {
 
         for (UserResponseDto admin : admins) {
 
-            notificationServiceClient.createNotification(
-                    CreateNotificationRequestDto.builder()
+            kafkaProducerService.sendNotification(
+                    IncidentNotificationEvent.builder()
                             .userId(admin.getId())
                             .title("Incident Resolved")
                             .message(
@@ -543,8 +544,8 @@ public class IncidentServiceImpl implements IncidentService {
                         incident
                 );
 
-        notificationServiceClient.createNotification(
-                CreateNotificationRequestDto.builder()
+        kafkaProducerService.sendNotification(
+                IncidentNotificationEvent.builder()
                         .userId(
                                 incident.getCreatedBy()
                         )
@@ -556,7 +557,6 @@ public class IncidentServiceImpl implements IncidentService {
                         )
                         .build()
         );
-
         log.info(
                 "Incident {} closed by admin {}",
                 id,
