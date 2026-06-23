@@ -15,10 +15,12 @@ import {
   LineChartOutlined,
   PieChartOutlined,
   BarChartOutlined,
+  BellOutlined,
 } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as ChartTooltip, LineChart, Line, CartesianGrid, Legend } from 'recharts';
 import { useAuth } from '../context/AuthContext';
+import { useNotification, formatRelativeTime } from '../context/NotificationContext';
 import api from '../api/axiosConfig';
 
 const { Title, Paragraph, Text } = Typography;
@@ -26,6 +28,12 @@ const { Title, Paragraph, Text } = Typography;
 const Dashboard = () => {
   const { user, darkMode } = useAuth();
   const navigate = useNavigate();
+  const { 
+    notifications, 
+    loading: notificationsLoading, 
+    setDrawerOpen, 
+    markAsRead: markNotificationRead 
+  } = useNotification();
   
   // Loading & Error States
   const [loading, setLoading] = useState(true);
@@ -586,6 +594,87 @@ const Dashboard = () => {
                       };
                     })}
                   />
+                </div>
+              )}
+            </Card>
+
+            {/* Recent Notifications Widget Card */}
+            <Card
+              title={
+                <Space className="flex items-center">
+                  <BellOutlined className="text-blue-500 text-lg" />
+                  <span>Recent Notifications</span>
+                </Space>
+              }
+              extra={
+                <Button 
+                  type="link" 
+                  size="small" 
+                  onClick={() => setDrawerOpen(true)}
+                  className="p-0 text-xs font-semibold"
+                >
+                  View All
+                </Button>
+              }
+              className="rounded-xl shadow-sm border border-gray-100 dark:border-zinc-800"
+            >
+              {notificationsLoading ? (
+                <Skeleton active paragraph={{ rows: 4 }} />
+              ) : notifications.length === 0 ? (
+                <Text type="secondary" className="block text-center py-4">No recent notifications.</Text>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {notifications.slice(0, 5).map(item => {
+                    const ticketMatch = item.message?.match(/#(\d+)/);
+                    const ticketId = ticketMatch ? ticketMatch[1] : null;
+
+                    const handleItemClick = async () => {
+                      if (!item.read) {
+                        await markNotificationRead(item.id);
+                      }
+                      if (ticketId) {
+                        navigate(`/incidents/${ticketId}`);
+                      }
+                    };
+
+                    return (
+                      <div 
+                        key={item.id}
+                        onClick={handleItemClick}
+                        className={`group flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-zinc-800/40 ${
+                          !item.read ? 'bg-blue-500/5' : ''
+                        }`}
+                      >
+                        <Badge 
+                          status={item.read ? 'default' : 'processing'} 
+                          className="mt-1.5 flex-shrink-0" 
+                        />
+                        <div className="flex-grow min-w-0">
+                          <div className="flex justify-between items-baseline gap-2">
+                            <Text 
+                              strong={!item.read} 
+                              className={`text-xs block truncate ${
+                                !item.read ? 'text-slate-800 dark:text-zinc-100' : 'text-slate-600 dark:text-zinc-400'
+                              }`}
+                            >
+                              {item.title}
+                            </Text>
+                            <span className="text-[9px] text-zinc-400 dark:text-zinc-500 flex-shrink-0">
+                              {formatRelativeTime(item.createdAt)}
+                            </span>
+                          </div>
+                          <Paragraph 
+                            ellipsis={{ rows: 2 }} 
+                            className={`!m-0 text-[11px] leading-snug mt-0.5 ${
+                              !item.read ? 'text-slate-700 dark:text-zinc-200' : 'text-slate-400 dark:text-zinc-500'
+                            }`}
+                          >
+                            {item.message}
+                          </Paragraph>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </Card>
