@@ -22,6 +22,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, 
 import { useAuth } from '../context/AuthContext';
 import { useNotification, formatRelativeTime } from '../context/NotificationContext';
 import api from '../api/axiosConfig';
+import { sortIncidents } from '../services/incidentService';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -78,7 +79,7 @@ const Dashboard = () => {
         incidentsRes = await api.get('/api/v1/incidents');
       }
 
-      const data = incidentsRes.data;
+      const data = sortIncidents(incidentsRes.data);
       setAllIncidents(data);
       setFilteredIncidents(data);
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Upload, Button, Space, Typography, Card, Empty, message, Spin, Tooltip, Tag } from 'antd';
+import { Table, Upload, Button, Space, Typography, Card, Empty, message, Spin, Tooltip, Tag, Popconfirm } from 'antd';
 import { 
   InboxOutlined, 
   DownloadOutlined, 
@@ -8,19 +8,33 @@ import {
   FileZipOutlined, 
   FileTextOutlined, 
   FileOutlined,
-  PaperClipOutlined
+  PaperClipOutlined,
+  DeleteOutlined
 } from '@ant-design/icons';
-import { getAttachments, uploadAttachment } from '../services/attachmentService';
+import { getAttachments, uploadAttachment, deleteAttachment } from '../services/attachmentService';
 import { useAuth } from '../context/AuthContext';
 
 const { Text, Title } = Typography;
 const { Dragger } = Upload;
 
-const AttachmentsTab = ({ incidentId }) => {
+const AttachmentsTab = ({ incidentId, incidentStatus }) => {
   const { darkMode } = useAuth();
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+
+  const isIncidentOpen = incidentStatus === 'OPEN';
+
+  const handleDelete = async (attachmentId) => {
+    try {
+      await deleteAttachment(attachmentId);
+      message.success('Attachment deleted successfully.');
+      fetchAttachments();
+    } catch (err) {
+      console.error('Delete failed:', err);
+      message.error(err.response?.data?.message || 'Failed to delete attachment.');
+    }
+  };
 
   // Fetch attachments list
   const fetchAttachments = useCallback(async () => {
@@ -139,18 +153,56 @@ const AttachmentsTab = ({ incidentId }) => {
     {
       title: 'Action',
       key: 'action',
-      width: '160px',
+      width: '240px',
       render: (_, record) => (
-        <Button 
-          type="primary" 
-          ghost 
-          size="small" 
-          icon={<DownloadOutlined />}
-          onClick={() => window.open(record.fileUrl, '_blank')}
-          className="hover:scale-102 transition-transform"
-        >
-          View / Download
-        </Button>
+        <Space size="small">
+          <Button 
+            type="primary" 
+            ghost 
+            size="small" 
+            icon={<DownloadOutlined />}
+            onClick={() => window.open(record.fileUrl, '_blank')}
+            className="hover:scale-102 transition-transform"
+          >
+            View
+          </Button>
+          {isIncidentOpen ? (
+            <Popconfirm
+              title="Delete Attachment"
+              description="Are you sure you want to delete this attachment?"
+              onConfirm={() => handleDelete(record.id)}
+              okText="Yes"
+              cancelText="No"
+              okButtonProps={{ danger: true }}
+            >
+              <Button 
+                type="primary" 
+                danger 
+                ghost
+                size="small" 
+                icon={<DeleteOutlined />}
+                className="hover:scale-102 transition-transform"
+              >
+                Delete
+              </Button>
+            </Popconfirm>
+          ) : (
+            <Tooltip title="Attachments can only be deleted while the incident is in OPEN status.">
+              <span>
+                <Button 
+                  type="primary" 
+                  danger 
+                  ghost
+                  size="small" 
+                  icon={<DeleteOutlined />}
+                  disabled
+                >
+                  Delete
+                </Button>
+              </span>
+            </Tooltip>
+          )}
+        </Space>
       ),
     }
   ];

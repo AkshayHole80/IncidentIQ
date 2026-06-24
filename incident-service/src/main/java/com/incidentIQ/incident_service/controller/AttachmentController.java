@@ -46,4 +46,17 @@ public class AttachmentController {
                         incidentId
                 );
     }
+
+    @DeleteMapping(
+            "/attachments/{attachmentId}"
+    )
+    public void deleteAttachment(
+            @PathVariable Long attachmentId
+    ) {
+
+        attachmentService
+                .deleteAttachment(
+                        attachmentId
+                );
+    }
 }

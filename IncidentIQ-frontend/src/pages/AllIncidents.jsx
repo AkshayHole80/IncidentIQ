@@ -11,6 +11,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
+import { sortIncidents } from '../services/incidentService';
 
 const { Title, Paragraph, Text } = Typography;
 const { Option } = Select;
@@ -68,7 +69,7 @@ const AllIncidents = () => {
           params: { keyword: searchKeyword }
         });
       }
-      setIncidents(response.data);
+      setIncidents(sortIncidents(response.data));
     } catch (err) {
       console.error('Failed to fetch incidents', err);
       setError('Could not load incidents. Please verify API Gateway connectivity.');
@@ -104,7 +105,7 @@ const AllIncidents = () => {
     // Directly fetch all
     setLoading(true);
     api.get(`/api/v1/incidents/search`, { params: { keyword: '' } })
-      .then(res => setIncidents(res.data))
+      .then(res => setIncidents(sortIncidents(res.data)))
       .catch(() => setError('Failed to reset list.'))
       .finally(() => setLoading(false));
   };

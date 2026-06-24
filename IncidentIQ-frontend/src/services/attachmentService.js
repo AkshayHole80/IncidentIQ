@@ -27,3 +27,14 @@ export const uploadAttachment = async (incidentId, file) => {
   });
   return response.data;
 };
+
+/**
+ * Delete a specific attachment
+ * @param {string|number} attachmentId 
+ * @returns {Promise<void>}
+ */
+export const deleteAttachment = async (attachmentId) => {
+  const response = await api.delete(`/api/v1/incidents/attachments/${attachmentId}`);
+  return response.data;
+};
+

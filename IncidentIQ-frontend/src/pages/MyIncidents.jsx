@@ -4,7 +4,7 @@ import { FileTextOutlined, EyeOutlined, SyncOutlined, EditOutlined, DeleteOutlin
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
 import { useAuth } from '../context/AuthContext';
-import { updateIncident, deleteIncident } from '../services/incidentService';
+import { updateIncident, deleteIncident, sortIncidents } from '../services/incidentService';
 
 const { Title, Paragraph } = Typography;
 
@@ -58,7 +58,7 @@ const MyIncidents = () => {
     try {
       // In the backend, GET /api/v1/incidents retrieves incidents created by the current user
       const response = await api.get('/api/v1/incidents');
-      setIncidents(response.data);
+      setIncidents(sortIncidents(response.data));
     } catch (err) {
       console.error('Failed to load my incidents', err);
       setError('Could not fetch your incidents. Please check your network connection.');

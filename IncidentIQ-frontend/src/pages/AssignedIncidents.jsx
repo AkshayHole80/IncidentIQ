@@ -3,6 +3,7 @@ import { Table, Tag, Button, Card, Space, Typography, Modal, Form, Input, Alert,
 import { ToolOutlined, CheckSquareOutlined, EyeOutlined, SyncOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
+import { sortIncidents } from '../services/incidentService';
 
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
@@ -22,7 +23,7 @@ const AssignedIncidents = () => {
     setError(null);
     try {
       const response = await api.get('/api/v1/incidents/assigned');
-      setIncidents(response.data);
+      setIncidents(sortIncidents(response.data));
     } catch (err) {
       console.error('Failed to load assigned incidents', err);
       setError('Could not fetch assigned incidents. Please verify your connection.');

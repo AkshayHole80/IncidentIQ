@@ -520,7 +520,7 @@ const IncidentDetails = () => {
               {
                 key: 'attachments',
                 label: 'Attachments',
-                children: <AttachmentsTab incidentId={id} />
+                children: <AttachmentsTab incidentId={id} incidentStatus={incident.status} />
               }
             ]}
           />

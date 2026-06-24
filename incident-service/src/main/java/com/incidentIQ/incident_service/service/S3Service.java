@@ -6,5 +6,6 @@ import org.springframework.web.multipart.MultipartFile;
 public interface S3Service {
 
     S3UploadResponse uploadFile(MultipartFile file);
+    void deleteFile(String key);
 
 }

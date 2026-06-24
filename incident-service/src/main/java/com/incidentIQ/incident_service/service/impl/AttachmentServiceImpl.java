@@ -109,4 +109,25 @@ public class AttachmentServiceImpl
                 )
                 .toList();
     }
+
+    @Override
+    public void deleteAttachment(
+            Long attachmentId) {
+
+        Attachment attachment =
+                attachmentRepository
+                        .findById(attachmentId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Attachment not found"
+                                ));
+
+        s3Service.deleteFile(
+                attachment.getS3Key()
+        );
+
+        attachmentRepository.delete(
+                attachment
+        );
+    }
 }

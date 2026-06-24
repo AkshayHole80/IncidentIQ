@@ -15,4 +15,6 @@ public interface AttachmentService {
     getAttachments(
             Long incidentId
     );
+
+    void deleteAttachment(Long attachmentId);
 }
