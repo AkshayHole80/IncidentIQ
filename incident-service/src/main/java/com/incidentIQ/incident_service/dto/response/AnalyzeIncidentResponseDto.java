@@ -1,10 +1,12 @@
 package com.incidentIQ.incident_service.dto.response;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
-@Getter
-@Setter
+@Data
+@ToString
 public class AnalyzeIncidentResponseDto {
 
     private String priority;

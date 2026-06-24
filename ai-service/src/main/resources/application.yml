@@ -4,8 +4,8 @@ server:
 spring:
   application:
     name: AI-SERVICE
-gemini:
-  api-key: ${GEMINI_API_KEY}
+groq:
+  api-key: ${GROQ_API_KEY}
 eureka:
   instance:
     hostname: localhost
