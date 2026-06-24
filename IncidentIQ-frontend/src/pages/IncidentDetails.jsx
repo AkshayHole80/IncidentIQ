@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Descriptions, Tag, Button, Steps, Space, Typography, Skeleton, Alert, Modal, Form, Select, Input, message, Grid, Row, Col, Badge, Popconfirm, Tabs, Timeline, Spin, Empty } from 'antd';
-import { ArrowLeftOutlined, InfoCircleOutlined, UserAddOutlined, CheckSquareOutlined, CloseCircleOutlined, RobotOutlined, UserOutlined, CalendarOutlined, CheckCircleOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Card, Descriptions, Tag, Button, Steps, Space, Typography, Skeleton, Alert, Modal, Form, Select, Input, message, Grid, Row, Col, Badge, Popconfirm, Tabs, Timeline, Spin, Empty, Upload } from 'antd';
+import { ArrowLeftOutlined, InfoCircleOutlined, UserAddOutlined, CheckSquareOutlined, CloseCircleOutlined, RobotOutlined, UserOutlined, CalendarOutlined, CheckCircleOutlined, EditOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axiosConfig';
 import { updateIncident, deleteIncident } from '../services/incidentService';
 import { getAuditLogs } from '../services/auditService';
+import AttachmentsTab from './AttachmentsTab';
+import { uploadAttachment } from '../services/attachmentService';
 
 const { Title, Paragraph, Text } = Typography;
 const { Option } = Select;
@@ -32,6 +34,26 @@ const IncidentDetails = () => {
   // Resolution Modal States
   const [resolveModalOpen, setResolveModalOpen] = useState(false);
   const [resolveLoading, setResolveLoading] = useState(false);
+  const [resolveFileList, setResolveFileList] = useState([]);
+
+  const resolveUploadProps = {
+    onRemove: (file) => {
+      const index = resolveFileList.indexOf(file);
+      const newFileList = resolveFileList.slice();
+      newFileList.splice(index, 1);
+      setResolveFileList(newFileList);
+    },
+    beforeUpload: (file) => {
+      const isLt20M = file.size / 1024 / 1024 < 20;
+      if (!isLt20M) {
+        message.error('File must be smaller than 20MB!');
+        return Upload.LIST_IGNORE;
+      }
+      setResolveFileList([...resolveFileList, file]);
+      return false;
+    },
+    fileList: resolveFileList,
+  };
 
   // Edit Incident States
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -217,7 +239,19 @@ const IncidentDetails = () => {
       await api.patch(`/api/v1/incidents/${id}/resolve`, {
         resolutionNotes: values.resolutionNotes,
       });
+
+      if (resolveFileList.length > 0) {
+        try {
+          await Promise.all(resolveFileList.map(file => uploadAttachment(id, file)));
+        } catch (uploadError) {
+          console.error('Failed to upload resolution attachments', uploadError);
+          message.error('Failed to upload some resolution attachments. You can re-upload them in the Attachments tab.');
+        }
+      }
+
       message.success('Incident resolved successfully.');
+      setResolveFileList([]);
+      resolveForm.resetFields();
       setResolveModalOpen(false);
       fetchIncidentDetails();
     } catch (err) {
@@ -482,6 +516,11 @@ const IncidentDetails = () => {
                     )}
                   </div>
                 )
+              },
+              {
+                key: 'attachments',
+                label: 'Attachments',
+                children: <AttachmentsTab incidentId={id} />
               }
             ]}
           />
@@ -533,7 +572,10 @@ const IncidentDetails = () => {
       <Modal
         open={resolveModalOpen}
         title={<Title level={4} className="!m-0">Document Ticket Resolution</Title>}
-        onCancel={() => setResolveModalOpen(false)}
+        onCancel={() => {
+          setResolveFileList([]);
+          setResolveModalOpen(false);
+        }}
         footer={null}
         destroyOnHidden
       >
@@ -549,9 +591,18 @@ const IncidentDetails = () => {
             <TextArea rows={5} placeholder="Describe root cause and solution details..." />
           </Form.Item>
 
+          <Form.Item label="Resolution Proof/Attachments (Optional)">
+            <Upload {...resolveUploadProps} listType="picture" multiple>
+              <Button icon={<UploadOutlined />}>Select Attachment</Button>
+            </Upload>
+          </Form.Item>
+
           <Form.Item className="text-right !mb-0">
             <Space>
-              <Button onClick={() => setResolveModalOpen(false)}>Cancel</Button>
+              <Button onClick={() => {
+                setResolveFileList([]);
+                setResolveModalOpen(false);
+              }}>Cancel</Button>
               <Button
                 type="primary"
                 htmlType="submit"

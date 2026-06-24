@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Card, Form, Input, Button, Modal, Spin, Typography, Space, message, notification } from 'antd';
-import { PlusCircleOutlined, RobotOutlined, SmileOutlined } from '@ant-design/icons';
+import { Card, Form, Input, Button, Modal, Spin, Typography, Space, message, notification, Upload } from 'antd';
+import { PlusCircleOutlined, RobotOutlined, SmileOutlined, UploadOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
+import { uploadAttachment } from '../services/attachmentService';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -10,10 +11,34 @@ const { TextArea } = Input;
 const CreateIncident = () => {
   const [loading, setLoading] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);
+  const [aiModalTitle, setAiModalTitle] = useState('Analyzing Incident Details');
+  const [aiModalText, setAiModalText] = useState('Our Gemini AI agent is classifying the category and severity level based on your description...');
+  const [fileList, setFileList] = useState([]);
   const navigate = useNavigate();
   const [form] = Form.useForm();
 
+  const uploadProps = {
+    onRemove: (file) => {
+      const index = fileList.indexOf(file);
+      const newFileList = fileList.slice();
+      newFileList.splice(index, 1);
+      setFileList(newFileList);
+    },
+    beforeUpload: (file) => {
+      const isLt20M = file.size / 1024 / 1024 < 20;
+      if (!isLt20M) {
+        message.error('File must be smaller than 20MB!');
+        return Upload.LIST_IGNORE;
+      }
+      setFileList([...fileList, file]);
+      return false;
+    },
+    fileList,
+  };
+
   const onFinish = async (values) => {
+    setAiModalTitle('Analyzing Incident Details');
+    setAiModalText('Our Gemini AI agent is classifying the category and severity level based on your description...');
     setLoading(true);
     setShowAiModal(true);
     try {
@@ -23,7 +48,21 @@ const CreateIncident = () => {
       });
 
       const createdIncident = response.data;
+
+      // Handle queued attachment uploads
+      if (fileList.length > 0) {
+        setAiModalTitle('Uploading Attachments');
+        setAiModalText(`Uploading ${fileList.length} attachment(s) to secure S3 storage...`);
+        try {
+          await Promise.all(fileList.map(file => uploadAttachment(createdIncident.id, file)));
+        } catch (uploadError) {
+          console.error('Failed to upload attachments during incident creation', uploadError);
+          message.error('Failed to upload some attachments. You can re-upload them in the Attachments tab.');
+        }
+      }
+
       setShowAiModal(false);
+      setFileList([]);
 
       // Display dynamic details computed by Gemini
       notification.open({
@@ -102,6 +141,12 @@ const CreateIncident = () => {
             />
           </Form.Item>
 
+          <Form.Item label="Incident Attachments (Optional)">
+            <Upload {...uploadProps} listType="picture" multiple>
+              <Button icon={<UploadOutlined />}>Select Attachment Files</Button>
+            </Upload>
+          </Form.Item>
+
           <Form.Item className="!mb-0 text-right">
             <Space>
               <Button onClick={() => navigate('/')}>Cancel</Button>
@@ -124,9 +169,9 @@ const CreateIncident = () => {
         <Space orientation="vertical" size="large" className="w-full">
           <Spin size="large" indicator={<RobotOutlined className="text-5xl text-blue-500" spin />} />
           <div>
-            <Title level={4}>Analyzing Incident Details</Title>
+            <Title level={4}>{aiModalTitle}</Title>
             <Text type="secondary">
-              Our Gemini AI agent is classifying the category and severity level based on your description...
+              {aiModalText}
             </Text>
           </div>
         </Space>
