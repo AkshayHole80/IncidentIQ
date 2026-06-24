@@ -5,6 +5,7 @@ import com.incidentIQ.user_service.dto.request.RegisterRequestDto;
 import com.incidentIQ.user_service.dto.response.AuthResponseDto;
 import com.incidentIQ.user_service.entity.User;
 import com.incidentIQ.user_service.exception.UserAlreadyExistsException;
+import com.incidentIQ.user_service.exception.ResourceNotFoundException;
 import com.incidentIQ.user_service.repository.UserRepository;
 import com.incidentIQ.user_service.security.CustomUserDetails;
 import com.incidentIQ.user_service.security.JwtService;
@@ -66,7 +67,9 @@ public class AuthServiceImpl implements AuthService {
         );
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow();
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User not found with email: " + request.getEmail()
+                ));
 
         String token = jwtService.generateToken(
                 new CustomUserDetails(user)

@@ -17,10 +17,13 @@ import com.incidentIQ.incident_service.exception.ForbiddenException;
 import com.incidentIQ.incident_service.exception.IncidentNotFoundException;
 import com.incidentIQ.incident_service.exception.UnauthorizedActionException;
 import com.incidentIQ.incident_service.kafka.KafkaProducerService;
+import com.incidentIQ.incident_service.entity.Attachment;
+import com.incidentIQ.incident_service.repository.AttachmentRepository;
 import com.incidentIQ.incident_service.repository.IncidentRepository;
 import com.incidentIQ.incident_service.security.SecurityUtils;
 import com.incidentIQ.incident_service.service.AuditLogService;
 import com.incidentIQ.incident_service.service.IncidentService;
+import com.incidentIQ.incident_service.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -40,6 +43,8 @@ public class IncidentServiceImpl implements IncidentService {
     private final AiServiceClient aiServiceClient;
     private final KafkaProducerService kafkaProducerService;
     private final AuditLogService auditLogService;
+    private final AttachmentRepository attachmentRepository;
+    private final S3Service s3Service;
 
     @Override
     public IncidentResponseDto createIncident(
@@ -234,6 +239,21 @@ public class IncidentServiceImpl implements IncidentService {
             throw new UnauthorizedActionException(
                     "Only OPEN incidents can be deleted"
             );
+        }
+
+        // Delete associated attachments from S3 and database first
+        List<Attachment> attachments = attachmentRepository.findByIncidentId(id);
+        for (Attachment attachment : attachments) {
+            try {
+                log.info("Deleting S3 file with key={} for incident={}", attachment.getS3Key(), id);
+                s3Service.deleteFile(attachment.getS3Key());
+            } catch (Exception e) {
+                log.error("Failed to delete attachment key={} from S3", attachment.getS3Key(), e);
+            }
+        }
+        if (!attachments.isEmpty()) {
+            attachmentRepository.deleteAll(attachments);
+            log.info("Deleted {} database attachment records for incident={}", attachments.size(), id);
         }
 
         incidentRepository.delete(incident);

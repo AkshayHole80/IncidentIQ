@@ -1,4 +1,4 @@
-package com.incidentIQ.incident_service.exception;
+package com.incidentIQ.ai_service.exception;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;

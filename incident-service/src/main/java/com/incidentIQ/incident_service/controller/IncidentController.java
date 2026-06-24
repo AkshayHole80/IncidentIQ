@@ -1,4 +1,5 @@
 package com.incidentIQ.incident_service.controller;
+
 import com.incidentIQ.incident_service.dto.request.AssignIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.request.CreateIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.request.ResolveIncidentRequestDto;
@@ -28,131 +29,101 @@ public class IncidentController {
     private final AuditLogService auditLogService;
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public IncidentResponseDto createIncident(
+    public ResponseEntity<IncidentResponseDto> createIncident(
             @Valid @RequestBody CreateIncidentRequestDto request) {
-
-        return incidentService.createIncident(request);
+        return new ResponseEntity<>(incidentService.createIncident(request), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public IncidentResponseDto getIncidentById(
+    public ResponseEntity<IncidentResponseDto> getIncidentById(
             @PathVariable Long id) {
-
-        return incidentService.getIncidentById(id);
+        return ResponseEntity.ok(incidentService.getIncidentById(id));
     }
 
     @GetMapping
-    public List<IncidentResponseDto> getAllIncidents() {
-
-        return incidentService.getAllIncidents();
+    public ResponseEntity<List<IncidentResponseDto>> getAllIncidents() {
+        return ResponseEntity.ok(incidentService.getAllIncidents());
     }
 
     @PutMapping("/{id}")
-    public IncidentResponseDto updateIncident(
+    public ResponseEntity<IncidentResponseDto> updateIncident(
             @PathVariable Long id,
             @RequestBody UpdateIncidentRequestDto request) {
-
-        return incidentService.updateIncident(id, request);
+        return ResponseEntity.ok(incidentService.updateIncident(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteIncident(
+    public ResponseEntity<Void> deleteIncident(
             @PathVariable Long id) {
-
         incidentService.deleteIncident(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/assign")
-    public IncidentResponseDto assignIncident(
+    public ResponseEntity<IncidentResponseDto> assignIncident(
             @PathVariable Long id,
             @RequestBody AssignIncidentRequestDto request) {
-
-        return incidentService.assignIncident(
-                id,
-                request
-        );
+        return ResponseEntity.ok(incidentService.assignIncident(id, request));
     }
 
     @PatchMapping("/{id}/status")
-    public IncidentResponseDto updateStatus(
+    public ResponseEntity<IncidentResponseDto> updateStatus(
             @PathVariable Long id,
             @RequestParam IncidentStatus status) {
-
-        return incidentService
-                .updateStatus(id, status);
+        return ResponseEntity.ok(incidentService.updateStatus(id, status));
     }
 
     @GetMapping("/assigned")
-    public List<IncidentResponseDto> getAssignedIncidents() {
-
-        return incidentService.getAssignedIncidents();
+    public ResponseEntity<List<IncidentResponseDto>> getAssignedIncidents() {
+        return ResponseEntity.ok(incidentService.getAssignedIncidents());
     }
 
     @GetMapping("/status/{status}")
-    public List<IncidentResponseDto> getByStatus(
+    public ResponseEntity<List<IncidentResponseDto>> getByStatus(
             @PathVariable IncidentStatus status) {
-
-        return incidentService
-                .getIncidentsByStatus(status);
+        return ResponseEntity.ok(incidentService.getIncidentsByStatus(status));
     }
 
     @GetMapping("/priority/{priority}")
-    public List<IncidentResponseDto> getByPriority(
+    public ResponseEntity<List<IncidentResponseDto>> getByPriority(
             @PathVariable Priority priority) {
-
-        return incidentService
-                .getIncidentsByPriority(priority);
+        return ResponseEntity.ok(incidentService.getIncidentsByPriority(priority));
     }
-    @GetMapping("/category/{category}")
-    public List<IncidentResponseDto> getByCategory(
-            @PathVariable Category category) {
 
-        return incidentService
-                .getIncidentsByCategory(category);
+    @GetMapping("/category/{category}")
+    public ResponseEntity<List<IncidentResponseDto>> getByCategory(
+            @PathVariable Category category) {
+        return ResponseEntity.ok(incidentService.getIncidentsByCategory(category));
     }
 
     @GetMapping("/stats")
-    public IncidentStatsResponseDto getStats() {
-
-        return incidentService.getIncidentStats();
+    public ResponseEntity<IncidentStatsResponseDto> getStats() {
+        return ResponseEntity.ok(incidentService.getIncidentStats());
     }
 
     @GetMapping("/search")
-    public List<IncidentResponseDto> searchIncidents(
+    public ResponseEntity<List<IncidentResponseDto>> searchIncidents(
             @RequestParam String keyword) {
-
-        return incidentService.searchIncidents(
-                keyword
-        );
+        return ResponseEntity.ok(incidentService.searchIncidents(keyword));
     }
 
     @PatchMapping("/{id}/resolve")
-    public IncidentResponseDto resolveIncident(
+    public ResponseEntity<IncidentResponseDto> resolveIncident(
             @PathVariable Long id,
             @RequestBody ResolveIncidentRequestDto request) {
-
-        return incidentService
-                .resolveIncident(id, request);
+        return ResponseEntity.ok(incidentService.resolveIncident(id, request));
     }
 
     @PatchMapping("/{id}/close")
-    public IncidentResponseDto closeIncident(
+    public ResponseEntity<IncidentResponseDto> closeIncident(
             @PathVariable Long id) {
-
-        return incidentService
-                .closeIncident(id);
+        return ResponseEntity.ok(incidentService.closeIncident(id));
     }
 
     @GetMapping("/{id}/audit-logs")
-    public ResponseEntity<List<AuditLogResponseDto>>
-    getAuditLogs(
+    public ResponseEntity<List<AuditLogResponseDto>> getAuditLogs(
             @PathVariable Long id
     ) {
-
-         return ResponseEntity.ok(
-                auditLogService.getAuditLogs(id)
-        );
+        return ResponseEntity.ok(auditLogService.getAuditLogs(id));
     }
 }

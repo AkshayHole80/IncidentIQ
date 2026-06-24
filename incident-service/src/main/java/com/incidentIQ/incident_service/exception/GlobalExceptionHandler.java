@@ -2,13 +2,13 @@ package com.incidentIQ.incident_service.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
                 ErrorResponseDto.builder()
                         .timestamp(LocalDateTime.now())
                         .status(HttpStatus.NOT_FOUND.value())
-                        .error("Not Found")
+                        .error(HttpStatus.NOT_FOUND.name())
                         .message(ex.getMessage())
                         .build();
 
@@ -29,23 +29,102 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponseDto> handleValidationException(
-            MethodArgumentNotValidException ex) {
-
-        String message = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(error ->
-                        error.getField() + ": " + error.getDefaultMessage())
-                .collect(Collectors.joining(", "));
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponseDto> handleBadRequest(
+            BadRequestException ex) {
 
         ErrorResponseDto response =
                 ErrorResponseDto.builder()
                         .timestamp(LocalDateTime.now())
                         .status(HttpStatus.BAD_REQUEST.value())
-                        .error("Validation Failed")
-                        .message(message)
+                        .error(HttpStatus.BAD_REQUEST.name())
+                        .message(ex.getMessage())
+                        .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponseDto> handleIllegalState(
+            IllegalStateException ex) {
+
+        ErrorResponseDto response =
+                ErrorResponseDto.builder()
+                        .timestamp(LocalDateTime.now())
+                        .status(HttpStatus.BAD_REQUEST.value())
+                        .error(HttpStatus.BAD_REQUEST.name())
+                        .message(ex.getMessage())
+                        .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponseDto> handleForbidden(
+            ForbiddenException ex) {
+
+        ErrorResponseDto response =
+                ErrorResponseDto.builder()
+                        .timestamp(LocalDateTime.now())
+                        .status(HttpStatus.FORBIDDEN.value())
+                        .error(HttpStatus.FORBIDDEN.name())
+                        .message(ex.getMessage())
+                        .build();
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(response);
+    }
+
+    @ExceptionHandler(UnauthorizedActionException.class)
+    public ResponseEntity<ErrorResponseDto> handleUnauthorizedAction(
+            UnauthorizedActionException ex) {
+
+        ErrorResponseDto response =
+                ErrorResponseDto.builder()
+                        .timestamp(LocalDateTime.now())
+                        .status(HttpStatus.FORBIDDEN.value())
+                        .error(HttpStatus.FORBIDDEN.name())
+                        .message(ex.getMessage())
+                        .build();
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(response);
+    }
+
+    @ExceptionHandler(AiServiceException.class)
+    public ResponseEntity<ErrorResponseDto> handleAiService(
+            AiServiceException ex) {
+
+        ErrorResponseDto response =
+                ErrorResponseDto.builder()
+                        .timestamp(LocalDateTime.now())
+                        .status(HttpStatus.SERVICE_UNAVAILABLE.value())
+                        .error(HttpStatus.SERVICE_UNAVAILABLE.name())
+                        .message(ex.getMessage())
+                        .build();
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(response);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponseDto> handleValidationException(
+            MethodArgumentNotValidException ex) {
+
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error -> 
+            errors.put(error.getField(), error.getDefaultMessage())
+        );
+
+        ErrorResponseDto response =
+                ErrorResponseDto.builder()
+                        .timestamp(LocalDateTime.now())
+                        .status(HttpStatus.BAD_REQUEST.value())
+                        .error(HttpStatus.BAD_REQUEST.name())
+                        .message("Validation failed")
+                        .fieldErrors(errors)
                         .build();
 
         return ResponseEntity.badRequest()
@@ -60,89 +139,11 @@ public class GlobalExceptionHandler {
                 ErrorResponseDto.builder()
                         .timestamp(LocalDateTime.now())
                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                        .error("Internal Server Error")
+                        .error(HttpStatus.INTERNAL_SERVER_ERROR.name())
                         .message(ex.getMessage())
                         .build();
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(response);
-    }
-    @ExceptionHandler(AiServiceException.class)
-    public ResponseEntity<ErrorResponseDto> handleAiServiceException(
-            AiServiceException ex) {
-
-        ErrorResponseDto error = ErrorResponseDto.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.SERVICE_UNAVAILABLE.value())
-                .error("AI Service Unavailable")
-                .message(ex.getMessage())
-                .build();
-
-        return ResponseEntity
-                .status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(error);
-    }
-
-    @ExceptionHandler(ForbiddenException.class)
-    public ResponseEntity<ErrorResponseDto> handleForbiddenException(
-            ForbiddenException ex) {
-
-        ErrorResponseDto error =
-                ErrorResponseDto.builder()
-                        .timestamp(LocalDateTime.parse(LocalDateTime.now().toString()))
-                        .status(HttpStatus.FORBIDDEN.value())
-                        .error("Forbidden")
-                        .message(ex.getMessage())
-                        .build();
-
-        return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
-                .body(error);
-    }
-
-    @ExceptionHandler(
-            UnauthorizedActionException.class)
-    public ResponseEntity<ErrorResponseDto>
-    handleUnauthorizedActionException(
-            UnauthorizedActionException ex) {
-
-        ErrorResponseDto error =
-                ErrorResponseDto.builder()
-                        .timestamp(LocalDateTime.now())
-                        .status(HttpStatus.FORBIDDEN.value())
-                        .error("Forbidden")
-                        .message(ex.getMessage())
-                        .build();
-
-        return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
-                .body(error);
-    }
-
-    @ExceptionHandler(
-            IllegalStateException.class)
-    public ResponseEntity<ErrorResponseDto>
-    handleIllegalStateException(
-            IllegalStateException ex) {
-
-        ErrorResponseDto error =
-                ErrorResponseDto.builder()
-                        .timestamp(
-                                LocalDateTime.now()
-                        )
-                        .status(
-                                HttpStatus.BAD_REQUEST.value()
-                        )
-                        .error(
-                                "Invalid Workflow"
-                        )
-                        .message(
-                                ex.getMessage()
-                        )
-                        .build();
-
-        return ResponseEntity
-                .badRequest()
-                .body(error);
     }
 }

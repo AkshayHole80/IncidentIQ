@@ -1,8 +1,7 @@
-package com.incidentIQ.user_service.exception;
+package com.incidentIQ.notification_service.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -14,26 +13,10 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponseDto> handleUserAlreadyExists(
-            UserAlreadyExistsException ex
-    ) {
-        ErrorResponseDto response =
-                ErrorResponseDto.builder()
-                        .timestamp(LocalDateTime.now())
-                        .status(HttpStatus.CONFLICT.value())
-                        .error(HttpStatus.CONFLICT.name())
-                        .message(ex.getMessage())
-                        .build();
-
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(response);
-    }
-
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleResourceNotFound(
-            ResourceNotFoundException ex
-    ) {
+            ResourceNotFoundException ex) {
+
         ErrorResponseDto response =
                 ErrorResponseDto.builder()
                         .timestamp(LocalDateTime.now())
@@ -48,8 +31,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponseDto> handleBadRequest(
-            BadRequestException ex
-    ) {
+            BadRequestException ex) {
+
         ErrorResponseDto response =
                 ErrorResponseDto.builder()
                         .timestamp(LocalDateTime.now())
@@ -62,26 +45,10 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponseDto> handleAccessDenied(
-            AccessDeniedException ex
-    ) {
-        ErrorResponseDto response =
-                ErrorResponseDto.builder()
-                        .timestamp(LocalDateTime.now())
-                        .status(HttpStatus.FORBIDDEN.value())
-                        .error(HttpStatus.FORBIDDEN.name())
-                        .message(ex.getMessage())
-                        .build();
-
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(response);
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponseDto> handleValidationException(
-            MethodArgumentNotValidException ex
-    ) {
+            MethodArgumentNotValidException ex) {
+
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error -> 
             errors.put(error.getField(), error.getDefaultMessage())
@@ -102,8 +69,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleGenericException(
-            Exception ex
-    ) {
+            Exception ex) {
+
         ErrorResponseDto response =
                 ErrorResponseDto.builder()
                         .timestamp(LocalDateTime.now())

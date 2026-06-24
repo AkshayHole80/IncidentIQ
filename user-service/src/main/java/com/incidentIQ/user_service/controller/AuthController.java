@@ -7,6 +7,7 @@ import com.incidentIQ.user_service.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,17 +18,16 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    @ResponseStatus(HttpStatus.CREATED)
-    public AuthResponseDto register(@Valid
+    public ResponseEntity<AuthResponseDto> register(@Valid
             @RequestBody RegisterRequestDto request
     ) {
-        return authService.register(request);
+        return new ResponseEntity<>(authService.register(request), HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public AuthResponseDto login(
+    public ResponseEntity<AuthResponseDto> login(
             @RequestBody LoginRequestDto request
     ) {
-        return authService.login(request);
+        return ResponseEntity.ok(authService.login(request));
     }
 }

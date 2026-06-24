@@ -5,6 +5,7 @@ import com.incidentIQ.notification_service.dto.response.NotificationResponseDto;
 import com.incidentIQ.notification_service.entity.Notification;
 import com.incidentIQ.notification_service.repository.NotificationRepository;
 import com.incidentIQ.notification_service.service.NotificationService;
+import com.incidentIQ.notification_service.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -69,8 +70,8 @@ public class NotificationServiceImpl
         Notification notification =
                 notificationRepository.findById(notificationId)
                         .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Notification not found"));
+                                new ResourceNotFoundException(
+                                        "Notification not found with id: " + notificationId));
 
         notification.setIsRead(true);
 
