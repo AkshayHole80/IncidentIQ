@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Descriptions, Tag, Button, Steps, Space, Typography, Skeleton, Alert, Modal, Form, Select, Input, message, Grid, Row, Col, Badge, Popconfirm } from 'antd';
+import { Card, Descriptions, Tag, Button, Steps, Space, Typography, Skeleton, Alert, Modal, Form, Select, Input, message, Grid, Row, Col, Badge, Popconfirm, Tabs, Timeline, Spin, Empty } from 'antd';
 import { ArrowLeftOutlined, InfoCircleOutlined, UserAddOutlined, CheckSquareOutlined, CloseCircleOutlined, RobotOutlined, UserOutlined, CalendarOutlined, CheckCircleOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axiosConfig';
 import { updateIncident, deleteIncident } from '../services/incidentService';
+import { getAuditLogs } from '../services/auditService';
 
 const { Title, Paragraph, Text } = Typography;
 const { Option } = Select;
@@ -36,9 +37,56 @@ const IncidentDetails = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
 
+  // Audit Log States
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+
   const [form] = Form.useForm();
   const [resolveForm] = Form.useForm();
   const [editForm] = Form.useForm();
+
+  const fetchAuditHistory = async () => {
+    setAuditLoading(true);
+    try {
+      const logs = await getAuditLogs(id);
+      setAuditLogs(logs);
+    } catch (err) {
+      console.error('Failed to load audit history', err);
+      message.error(err.response?.data?.message || 'Failed to load audit history logs.');
+    } finally {
+      setAuditLoading(false);
+    }
+  };
+
+  const handleTabChange = (key) => {
+    if (key === 'history') {
+      fetchAuditHistory();
+    }
+  };
+
+  const getActionColor = (action) => {
+    switch (action) {
+      case 'CREATED': return 'green';
+      case 'ASSIGNED': return 'blue';
+      case 'UPDATED': return 'gray';
+      case 'RESOLVED': return 'orange';
+      case 'CLOSED':
+      case 'DELETED': return 'red';
+      default: return 'blue';
+    }
+  };
+
+  const getActionIcon = (action) => {
+    switch (action) {
+      case 'CREATED': return '🟢';
+      case 'ASSIGNED': return '👤';
+      case 'UPDATED': return '⚙️';
+      case 'RESOLVED': return '✅';
+      case 'CLOSED': return '🔒';
+      case 'DELETED': return '❌';
+      default: return 'ℹ️';
+    }
+  };
 
   const handleEditSubmit = async (values) => {
     setEditLoading(true);
@@ -236,151 +284,207 @@ const IncidentDetails = () => {
           }
           className="rounded-xl shadow-sm border-zinc-100 dark:border-zinc-800"
         >
-          {/* SaaS Visual Steps Timeline */}
-          <div className="bg-zinc-50 dark:bg-zinc-800/50 p-6 px-4 rounded-xl mb-6 border border-zinc-100 dark:border-zinc-700">
-            <Steps
-              orientation={screens.xs ? 'vertical' : 'horizontal'}
-              current={getStepIndex(incident.status)}
-              items={stepsItems}
-              className="px-3"
-            />
-          </div>
+          <Tabs
+            defaultActiveKey="details"
+            onChange={handleTabChange}
+            items={[
+              {
+                key: 'details',
+                label: 'Details',
+                children: (
+                  <div className="pt-4">
+                    {/* SaaS Visual Steps Timeline */}
+                    <div className="bg-zinc-50 dark:bg-zinc-800/50 p-6 px-4 rounded-xl mb-6 border border-zinc-100 dark:border-zinc-700">
+                      <Steps
+                        orientation={screens.xs ? 'vertical' : 'horizontal'}
+                        current={getStepIndex(incident.status)}
+                        items={stepsItems}
+                        className="px-3"
+                      />
+                    </div>
 
-          <Title level={3} className="!mb-5">{incident.title}</Title>
+                    <Title level={3} className="!mb-5">{incident.title}</Title>
 
-          <Row gutter={[24, 24]} className="mb-6">
-            <Col xs={24} md={16}>
-              <Descriptions bordered column={1} size="middle" className="bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800">
-                <Descriptions.Item label={<Space><CalendarOutlined /> Filed Date</Space>}>
-                  {new Date(incident.createdAt).toLocaleString()}
-                </Descriptions.Item>
-                <Descriptions.Item label={<Space><UserOutlined /> Filed By</Space>}>
-                  {creator ? (
-                    <Text strong>{creator.firstName} {creator.lastName} ({creator.email})</Text>
-                  ) : incident.createdBy === user?.id ? (
-                    <Text strong>{user.firstName} {user.lastName} (You)</Text>
-                  ) : engineerMap[incident.createdBy] ? (
-                    <Text strong>{engineerMap[incident.createdBy]}</Text>
-                  ) : (
-                    <Text>User Account #{incident.createdBy}</Text>
-                  )}
-                </Descriptions.Item>
-                <Descriptions.Item label={<Space><UserOutlined /> Assigned To</Space>}>
-                  {incident.assignedTo ? (
-                    <Text strong>{engineerMap[incident.assignedTo] || `Engineer #${incident.assignedTo}`}</Text>
-                  ) : (
-                    <Text type="secondary" italic>Unassigned</Text>
-                  )}
-                </Descriptions.Item>
-              </Descriptions>
-            </Col>
+                    <Row gutter={[24, 24]} className="mb-6">
+                      <Col xs={24} md={16}>
+                        <Descriptions bordered column={1} size="middle" className="bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800">
+                          <Descriptions.Item label={<Space><CalendarOutlined /> Filed Date</Space>}>
+                            {new Date(incident.createdAt).toLocaleString()}
+                          </Descriptions.Item>
+                          <Descriptions.Item label={<Space><UserOutlined /> Filed By</Space>}>
+                            {creator ? (
+                              <Text strong>{creator.firstName} {creator.lastName} ({creator.email})</Text>
+                            ) : incident.createdBy === user?.id ? (
+                              <Text strong>{user.firstName} {user.lastName} (You)</Text>
+                            ) : engineerMap[incident.createdBy] ? (
+                              <Text strong>{engineerMap[incident.createdBy]}</Text>
+                            ) : (
+                              <Text>User Account #{incident.createdBy}</Text>
+                            )}
+                          </Descriptions.Item>
+                          <Descriptions.Item label={<Space><UserOutlined /> Assigned To</Space>}>
+                            {incident.assignedTo ? (
+                              <Text strong>{engineerMap[incident.assignedTo] || `Engineer #${incident.assignedTo}`}</Text>
+                            ) : (
+                              <Text type="secondary" italic>Unassigned</Text>
+                            )}
+                          </Descriptions.Item>
+                        </Descriptions>
+                      </Col>
 
-            <Col xs={24} md={8}>
-              {/* Gemini AI Classification Card */}
-              <Card
-                title={
-                  <Space>
-                    <RobotOutlined className="text-blue-500 text-lg" />
-                    <span className="text-sm font-bold">Gemini AI Classification</span>
-                  </Space>
-                }
-                size="small"
-                className="bg-sky-50/20 dark:bg-zinc-800 border-sky-200 dark:border-zinc-700 rounded-lg"
-              >
-                <div className="flex flex-col gap-3">
-                  <div>
-                    <div className="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 tracking-wider mb-1">AI-ASSESSED CATEGORY</div>
-                    <Tag color="geekblue" className="text-xs px-2 py-0.5 border-none">{incident.category}</Tag>
+                      <Col xs={24} md={8}>
+                        {/* Gemini AI Classification Card */}
+                        <Card
+                          title={
+                            <Space>
+                              <RobotOutlined className="text-blue-500 text-lg" />
+                              <span className="text-sm font-bold">Gemini AI Classification</span>
+                            </Space>
+                          }
+                          size="small"
+                          className="bg-sky-50/20 dark:bg-zinc-800 border-sky-200 dark:border-zinc-700 rounded-lg"
+                        >
+                          <div className="flex flex-col gap-3">
+                            <div>
+                              <div className="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 tracking-wider mb-1">AI-ASSESSED CATEGORY</div>
+                              <Tag color="geekblue" className="text-xs px-2 py-0.5 border-none">{incident.category}</Tag>
+                            </div>
+                            <div>
+                              <div className="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 tracking-wider mb-1">AI-ASSESSED PRIORITY</div>
+                              <Tag color={getPriorityTagColor(incident.priority)} className="text-xs px-2 py-0.5 font-bold border-none">{incident.priority}</Tag>
+                            </div>
+                          </div>
+                        </Card>
+                      </Col>
+                    </Row>
+
+                    <div className="mb-6">
+                      <Text strong className="text-sm block mb-2">Detailed Incident Description</Text>
+                      <div className="bg-zinc-50 dark:bg-zinc-900 p-4 px-5 rounded-lg border border-zinc-100 dark:border-zinc-800 leading-relaxed">
+                        <Paragraph className="whitespace-pre-wrap !m-0 text-sm">
+                          {incident.description}
+                        </Paragraph>
+                      </div>
+                    </div>
+
+                    {/* Resolution notes summary */}
+                    {incident.resolutionNotes && (
+                      <div className="mb-6">
+                        <Text strong className="text-sm block mb-2 text-green-500">
+                          <CheckCircleOutlined /> Resolution Summary
+                        </Text>
+                        <div className="bg-green-50/30 dark:bg-emerald-950/20 p-4 px-5 rounded-lg border border-green-200 dark:border-emerald-900 leading-relaxed">
+                          <Paragraph className="whitespace-pre-wrap !m-0 text-sm">
+                            {incident.resolutionNotes}
+                          </Paragraph>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dynamic Contextual actions bottom toolbar */}
+                    <div className="flex justify-end border-t border-zinc-100 dark:border-zinc-800 pt-5 mt-5">
+                      <Space>
+                        {/* Creator Edit/Delete Actions */}
+                        {incident.createdBy === user?.id && incident.status === 'OPEN' && (
+                          <>
+                            <Button 
+                              icon={<EditOutlined />} 
+                              onClick={() => {
+                                editForm.setFieldsValue({
+                                  title: incident.title,
+                                  description: incident.description,
+                                });
+                                setEditModalOpen(true);
+                              }}
+                            >
+                              Edit Incident
+                            </Button>
+                            <Popconfirm
+                              title="Are you sure you want to delete this incident?"
+                              onConfirm={handleDeleteConfirm}
+                              okText="Yes"
+                              cancelText="No"
+                              okButtonProps={{ danger: true }}
+                            >
+                              <Button type="primary" danger icon={<DeleteOutlined />}>
+                                Delete Incident
+                              </Button>
+                            </Popconfirm>
+                          </>
+                        )}
+
+                        {/* Admin Actions */}
+                        {user?.role === 'ADMIN' && incident.status === 'OPEN' && (
+                          <Button type="primary" icon={<UserAddOutlined />} onClick={() => setAssignModalOpen(true)}>
+                            Assign Support Engineer
+                          </Button>
+                        )}
+                        {user?.role === 'ADMIN' && incident.status === 'RESOLVED' && (
+                          <Button type="primary" danger icon={<CloseCircleOutlined />} onClick={handleClose}>
+                            Archive & Close Ticket
+                          </Button>
+                        )}
+
+                        {/* Support Engineer Actions */}
+                        {user?.role === 'SUPPORT_ENGINEER' && incident.status === 'IN_PROGRESS' && incident.assignedTo === user.id && (
+                          <Button
+                            type="primary"
+                            icon={<CheckSquareOutlined />}
+                            onClick={() => setResolveModalOpen(true)}
+                            className="!bg-green-500 !border-green-500 hover:!bg-green-600 hover:!border-green-600 text-white"
+                          >
+                            Resolve Incident
+                          </Button>
+                        )}
+                      </Space>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 tracking-wider mb-1">AI-ASSESSED PRIORITY</div>
-                    <Tag color={getPriorityTagColor(incident.priority)} className="text-xs px-2 py-0.5 font-bold border-none">{incident.priority}</Tag>
+                )
+              },
+              {
+                key: 'history',
+                label: 'History',
+                children: (
+                  <div className="pt-6 pb-2">
+                    {auditLoading ? (
+                      <div className="flex justify-center items-center py-16">
+                        <Spin size="large" tip="Loading audit logs..." />
+                      </div>
+                    ) : auditLogs.length === 0 ? (
+                      <Empty description="No history recorded for this incident." className="py-12" />
+                    ) : (
+                      <div className="max-w-[650px] mx-auto">
+                        <Timeline
+                          mode="left"
+                          items={auditLogs.map((log) => ({
+                            color: getActionColor(log.action),
+                            children: (
+                              <div className="mb-4">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-sm text-slate-800 dark:text-zinc-100">
+                                    {getActionIcon(log.action)} {log.action}
+                                  </span>
+                                </div>
+                                <div className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 mt-1">
+                                  By: {log.userName || 'System'}
+                                </div>
+                                <div className="text-sm text-slate-600 dark:text-zinc-300 mt-1.5 bg-zinc-50 dark:bg-zinc-900/40 p-3 rounded-lg border border-zinc-100 dark:border-zinc-800/80 leading-relaxed">
+                                  {log.details}
+                                </div>
+                                <div className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1.5">
+                                  {log.createdAt ? new Date(log.createdAt).toLocaleString() : 'N/A'}
+                                </div>
+                              </div>
+                            )
+                          }))}
+                        />
+                      </div>
+                    )}
                   </div>
-                </div>
-              </Card>
-            </Col>
-          </Row>
-
-          <div className="mb-6">
-            <Text strong className="text-sm block mb-2">Detailed Incident Description</Text>
-            <div className="bg-zinc-50 dark:bg-zinc-900 p-4 px-5 rounded-lg border border-zinc-100 dark:border-zinc-800 leading-relaxed">
-              <Paragraph className="whitespace-pre-wrap !m-0 text-sm">
-                {incident.description}
-              </Paragraph>
-            </div>
-          </div>
-
-          {/* Resolution notes summary */}
-          {incident.resolutionNotes && (
-            <div className="mb-6">
-              <Text strong className="text-sm block mb-2 text-green-500">
-                <CheckCircleOutlined /> Resolution Summary
-              </Text>
-              <div className="bg-green-50/30 dark:bg-emerald-950/20 p-4 px-5 rounded-lg border border-green-200 dark:border-emerald-900 leading-relaxed">
-                <Paragraph className="whitespace-pre-wrap !m-0 text-sm">
-                  {incident.resolutionNotes}
-                </Paragraph>
-              </div>
-            </div>
-          )}
-
-          {/* Dynamic Contextual actions bottom toolbar */}
-          <div className="flex justify-end border-t border-zinc-100 dark:border-zinc-800 pt-5 mt-5">
-            <Space>
-              {/* Creator Edit/Delete Actions */}
-              {incident.createdBy === user?.id && incident.status === 'OPEN' && (
-                <>
-                  <Button 
-                    icon={<EditOutlined />} 
-                    onClick={() => {
-                      editForm.setFieldsValue({
-                        title: incident.title,
-                        description: incident.description,
-                      });
-                      setEditModalOpen(true);
-                    }}
-                  >
-                    Edit Incident
-                  </Button>
-                  <Popconfirm
-                    title="Are you sure you want to delete this incident?"
-                    onConfirm={handleDeleteConfirm}
-                    okText="Yes"
-                    cancelText="No"
-                    okButtonProps={{ danger: true }}
-                  >
-                    <Button type="primary" danger icon={<DeleteOutlined />}>
-                      Delete Incident
-                    </Button>
-                  </Popconfirm>
-                </>
-              )}
-
-              {/* Admin Actions */}
-              {user?.role === 'ADMIN' && incident.status === 'OPEN' && (
-                <Button type="primary" icon={<UserAddOutlined />} onClick={() => setAssignModalOpen(true)}>
-                  Assign Support Engineer
-                </Button>
-              )}
-              {user?.role === 'ADMIN' && incident.status === 'RESOLVED' && (
-                <Button type="primary" danger icon={<CloseCircleOutlined />} onClick={handleClose}>
-                  Archive & Close Ticket
-                </Button>
-              )}
-
-              {/* Support Engineer Actions */}
-              {user?.role === 'SUPPORT_ENGINEER' && incident.status === 'IN_PROGRESS' && incident.assignedTo === user.id && (
-                <Button
-                  type="primary"
-                  icon={<CheckSquareOutlined />}
-                  onClick={() => setResolveModalOpen(true)}
-                  className="!bg-green-500 !border-green-500 hover:!bg-green-600 hover:!border-green-600 text-white"
-                >
-                  Resolve Incident
-                </Button>
-              )}
-            </Space>
-          </div>
+                )
+              }
+            ]}
+          />
         </Card>
       )}
 
@@ -467,7 +571,7 @@ const IncidentDetails = () => {
         title={<Title level={4} className="!m-0">Edit Incident Details</Title>}
         onCancel={() => setEditModalOpen(false)}
         footer={null}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={editForm}
