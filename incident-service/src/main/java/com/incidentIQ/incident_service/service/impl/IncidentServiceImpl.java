@@ -8,6 +8,7 @@ import com.incidentIQ.incident_service.dto.response.IncidentResponseDto;
 import com.incidentIQ.incident_service.dto.response.IncidentStatsResponseDto;
 import com.incidentIQ.incident_service.dto.response.UserResponseDto;
 import com.incidentIQ.incident_service.entity.Incident;
+import com.incidentIQ.incident_service.enums.AuditAction;
 import com.incidentIQ.incident_service.enums.Category;
 import com.incidentIQ.incident_service.enums.IncidentStatus;
 import com.incidentIQ.incident_service.enums.Priority;
@@ -18,6 +19,7 @@ import com.incidentIQ.incident_service.exception.UnauthorizedActionException;
 import com.incidentIQ.incident_service.kafka.KafkaProducerService;
 import com.incidentIQ.incident_service.repository.IncidentRepository;
 import com.incidentIQ.incident_service.security.SecurityUtils;
+import com.incidentIQ.incident_service.service.AuditLogService;
 import com.incidentIQ.incident_service.service.IncidentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +39,7 @@ public class IncidentServiceImpl implements IncidentService {
     private final UserServiceClient userServiceClient;
     private final AiServiceClient aiServiceClient;
     private final KafkaProducerService kafkaProducerService;
+    private final AuditLogService auditLogService;
 
     @Override
     public IncidentResponseDto createIncident(
@@ -108,6 +111,13 @@ public class IncidentServiceImpl implements IncidentService {
 
         Incident saved =
                 incidentRepository.save(incident);
+        auditLogService.log(
+                saved.getId(),
+                user.getId(),
+                email,
+                AuditAction.CREATED,
+                "Incident created"
+        );
 
         log.info(
                 "Incident created successfully with id={}",
@@ -185,6 +195,15 @@ public class IncidentServiceImpl implements IncidentService {
 
         Incident updatedIncident =
                 incidentRepository.save(incident);
+        UserResponseDto currentUser = getCurrentUser();
+
+        auditLogService.log(
+                updatedIncident.getId(),
+                currentUser.getId(),
+                currentUser.getEmail(),
+                AuditAction.UPDATED,
+                "Incident updated"
+        );
 
         log.info(
                 "Incident updated successfully. Id={}",
@@ -218,6 +237,15 @@ public class IncidentServiceImpl implements IncidentService {
         }
 
         incidentRepository.delete(incident);
+        UserResponseDto currentUser = getCurrentUser();
+
+        auditLogService.log(
+                incident.getId(),
+                currentUser.getId(),
+                currentUser.getEmail(),
+                AuditAction.DELETED,
+                "Incident deleted"
+        );
 
         log.info(
                 "Incident deleted successfully. Id={}",
@@ -268,6 +296,14 @@ public class IncidentServiceImpl implements IncidentService {
         Incident saved =
                 incidentRepository.save(
                         incident);
+        auditLogService.log(
+                incident.getId(),
+                currentUser.getId(),
+                 currentUser.getEmail(),
+                AuditAction.ASSIGNED,
+                "Assigned to user "
+                        + request.getAssignedTo()
+        );
         kafkaProducerService.sendNotification(
                 IncidentNotificationEvent.builder()
                         .userId(request.getAssignedTo())
@@ -484,8 +520,19 @@ public class IncidentServiceImpl implements IncidentService {
         Incident saved =
                 incidentRepository.save(
                         incident);
+        UserResponseDto currentUser =
+                getCurrentUser();
+
+        auditLogService.log(
+                saved.getId(),
+                currentUser.getId(),
+                currentUser.getEmail(),
+                AuditAction.RESOLVED,
+                "Incident resolved"
+        );
         List<UserResponseDto> admins =
                 userServiceClient.getAdmins();
+
 
         for (UserResponseDto admin : admins) {
 
@@ -543,6 +590,13 @@ public class IncidentServiceImpl implements IncidentService {
                 incidentRepository.save(
                         incident
                 );
+        auditLogService.log(
+                saved.getId(),
+                currentUser.getId(),
+                currentUser.getEmail(),
+                AuditAction.CLOSED,
+                "Incident closed"
+        );
 
         kafkaProducerService.sendNotification(
                 IncidentNotificationEvent.builder()

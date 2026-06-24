@@ -3,15 +3,18 @@ import com.incidentIQ.incident_service.dto.request.AssignIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.request.CreateIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.request.ResolveIncidentRequestDto;
 import com.incidentIQ.incident_service.dto.request.UpdateIncidentRequestDto;
+import com.incidentIQ.incident_service.dto.response.AuditLogResponseDto;
 import com.incidentIQ.incident_service.dto.response.IncidentResponseDto;
 import com.incidentIQ.incident_service.dto.response.IncidentStatsResponseDto;
 import com.incidentIQ.incident_service.enums.Category;
 import com.incidentIQ.incident_service.enums.IncidentStatus;
 import com.incidentIQ.incident_service.enums.Priority;
+import com.incidentIQ.incident_service.service.AuditLogService;
 import com.incidentIQ.incident_service.service.IncidentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +25,7 @@ import java.util.List;
 public class IncidentController {
 
     private final IncidentService incidentService;
+    private final AuditLogService auditLogService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -139,5 +143,16 @@ public class IncidentController {
 
         return incidentService
                 .closeIncident(id);
+    }
+
+    @GetMapping("/{id}/audit-logs")
+    public ResponseEntity<List<AuditLogResponseDto>>
+    getAuditLogs(
+            @PathVariable Long id
+    ) {
+
+         return ResponseEntity.ok(
+                auditLogService.getAuditLogs(id)
+        );
     }
 }
