@@ -20,11 +20,11 @@ public class AiController {
     private final AiService aiService;
 
     @PostMapping("/analyze")
-    @Operation(summary = "Analyze incident with AI", description = "Sends incident details to Gemini AI to generate category, priority recommendations, and resolution steps")
+    @Operation(summary = "Analyze incident with AI", description = "Uses Groq LLM for incident classification, generating category, priority recommendations, and resolution steps")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "AI analysis successfully completed"),
             @ApiResponse(responseCode = "400", description = "Invalid request input data"),
-            @ApiResponse(responseCode = "503", description = "AI service unavailable: Gemini API call failed")
+            @ApiResponse(responseCode = "503", description = "AI service unavailable: Groq API call failed")
     })
     public ResponseEntity<AnalyzeIncidentResponseDto> analyzeIncident(
             @RequestBody AnalyzeIncidentRequestDto request) {
