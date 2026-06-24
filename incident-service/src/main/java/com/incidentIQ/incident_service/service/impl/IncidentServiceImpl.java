@@ -428,44 +428,38 @@ public class IncidentServiceImpl implements IncidentService {
     }
     @Override
     public IncidentStatsResponseDto getIncidentStats() {
+        UserResponseDto currentUser = getCurrentUser();
+        String role = currentUser.getRole();
+        Long userId = currentUser.getId();
 
-        return IncidentStatsResponseDto.builder()
-
-                .totalIncidents(
-                        incidentRepository.count()
-                )
-
-                .openIncidents(
-                        incidentRepository.countByStatus(
-                                IncidentStatus.OPEN
-                        )
-                )
-
-                .inProgressIncidents(
-                        incidentRepository.countByStatus(
-                                IncidentStatus.IN_PROGRESS
-                        )
-                )
-
-                .resolvedIncidents(
-                        incidentRepository.countByStatus(
-                                IncidentStatus.RESOLVED
-                        )
-                )
-
-                .closedIncidents(
-                        incidentRepository.countByStatus(
-                                IncidentStatus.CLOSED
-                        )
-                )
-
-                .criticalIncidents(
-                        incidentRepository.countByPriority(
-                                Priority.CRITICAL
-                        )
-                )
-
-                .build();
+        if ("ADMIN".equals(role)) {
+            return IncidentStatsResponseDto.builder()
+                    .totalIncidents(incidentRepository.count())
+                    .openIncidents(incidentRepository.countByStatus(IncidentStatus.OPEN))
+                    .inProgressIncidents(incidentRepository.countByStatus(IncidentStatus.IN_PROGRESS))
+                    .resolvedIncidents(incidentRepository.countByStatus(IncidentStatus.RESOLVED))
+                    .closedIncidents(incidentRepository.countByStatus(IncidentStatus.CLOSED))
+                    .criticalIncidents(incidentRepository.countByPriority(Priority.CRITICAL))
+                    .build();
+        } else if ("SUPPORT_ENGINEER".equals(role)) {
+            return IncidentStatsResponseDto.builder()
+                    .totalIncidents(incidentRepository.countByAssignedTo(userId))
+                    .openIncidents(incidentRepository.countByAssignedToAndStatus(userId, IncidentStatus.OPEN))
+                    .inProgressIncidents(incidentRepository.countByAssignedToAndStatus(userId, IncidentStatus.IN_PROGRESS))
+                    .resolvedIncidents(incidentRepository.countByAssignedToAndStatus(userId, IncidentStatus.RESOLVED))
+                    .closedIncidents(incidentRepository.countByAssignedToAndStatus(userId, IncidentStatus.CLOSED))
+                    .criticalIncidents(incidentRepository.countByAssignedToAndPriority(userId, Priority.CRITICAL))
+                    .build();
+        } else { // USER / default
+            return IncidentStatsResponseDto.builder()
+                    .totalIncidents(incidentRepository.countByCreatedBy(userId))
+                    .openIncidents(incidentRepository.countByCreatedByAndStatus(userId, IncidentStatus.OPEN))
+                    .inProgressIncidents(incidentRepository.countByCreatedByAndStatus(userId, IncidentStatus.IN_PROGRESS))
+                    .resolvedIncidents(incidentRepository.countByCreatedByAndStatus(userId, IncidentStatus.RESOLVED))
+                    .closedIncidents(incidentRepository.countByCreatedByAndStatus(userId, IncidentStatus.CLOSED))
+                    .criticalIncidents(incidentRepository.countByCreatedByAndPriority(userId, Priority.CRITICAL))
+                    .build();
+        }
     }
 
     @Override

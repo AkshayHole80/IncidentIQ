@@ -29,6 +29,40 @@ const { Title, Paragraph, Text } = Typography;
 const Dashboard = () => {
   const { user, darkMode } = useAuth();
   const navigate = useNavigate();
+  const getStatLabel = (key) => {
+    const role = user?.role;
+    if (role === 'USER') {
+      const labels = {
+        total: 'My Incidents',
+        open: 'My Open',
+        inProgress: 'My In Progress',
+        resolved: 'My Resolved',
+        closed: 'My Closed',
+        critical: 'My Critical'
+      };
+      return labels[key];
+    } else if (role === 'SUPPORT_ENGINEER') {
+      const labels = {
+        total: 'Assigned Incidents',
+        open: 'Open Assigned',
+        inProgress: 'In Progress Assigned',
+        resolved: 'Resolved Assigned',
+        closed: 'Closed Assigned',
+        critical: 'Critical Assigned'
+      };
+      return labels[key];
+    } else {
+      const labels = {
+        total: 'Total Incidents',
+        open: 'Open',
+        inProgress: 'In Progress',
+        resolved: 'Resolved',
+        closed: 'Closed',
+        critical: 'Critical'
+      };
+      return labels[key];
+    }
+  };
   const { 
     notifications, 
     loading: notificationsLoading, 
@@ -369,7 +403,7 @@ const Dashboard = () => {
             onClick={resetFilters}
           >
             <Statistic
-              title={<Text type="secondary" strong className="text-xs">Total Incidents</Text>}
+              title={<Text type="secondary" strong className="text-xs">{getStatLabel('total')}</Text>}
               value={stats.totalIncidents}
               prefix={<FileTextOutlined className="text-blue-500 mr-1" />}
               styles={{ content: { fontSize: '24px', fontWeight: 'bold' } }}
@@ -385,7 +419,7 @@ const Dashboard = () => {
             onClick={() => handleMetricCardClick('STATUS', 'OPEN')}
           >
             <Statistic
-              title={<Text type="secondary" strong className="text-xs">Open</Text>}
+              title={<Text type="secondary" strong className="text-xs">{getStatLabel('open')}</Text>}
               value={stats.openIncidents}
               prefix={<ClockCircleOutlined className="text-red-500 mr-1" />}
               styles={{ content: { fontSize: '24px', fontWeight: 'bold' } }}
@@ -401,7 +435,7 @@ const Dashboard = () => {
             onClick={() => handleMetricCardClick('STATUS', 'IN_PROGRESS')}
           >
             <Statistic
-              title={<Text type="secondary" strong className="text-xs">In Progress</Text>}
+              title={<Text type="secondary" strong className="text-xs">{getStatLabel('inProgress')}</Text>}
               value={stats.inProgressIncidents}
               prefix={<PlayCircleOutlined className="text-blue-500 mr-1" />}
               styles={{ content: { fontSize: '24px', fontWeight: 'bold' } }}
@@ -417,7 +451,7 @@ const Dashboard = () => {
             onClick={() => handleMetricCardClick('STATUS', 'RESOLVED')}
           >
             <Statistic
-              title={<Text type="secondary" strong className="text-xs">Resolved</Text>}
+              title={<Text type="secondary" strong className="text-xs">{getStatLabel('resolved')}</Text>}
               value={stats.resolvedIncidents}
               prefix={<CheckCircleOutlined className="text-green-500 mr-1" />}
               styles={{ content: { fontSize: '24px', fontWeight: 'bold' } }}
@@ -433,7 +467,7 @@ const Dashboard = () => {
             onClick={() => handleMetricCardClick('STATUS', 'CLOSED')}
           >
             <Statistic
-              title={<Text type="secondary" strong className="text-xs">Closed</Text>}
+              title={<Text type="secondary" strong className="text-xs">{getStatLabel('closed')}</Text>}
               value={stats.closedIncidents}
               prefix={<CloseCircleOutlined className="text-gray-500 mr-1" />}
               styles={{ content: { fontSize: '24px', fontWeight: 'bold' } }}
@@ -449,7 +483,7 @@ const Dashboard = () => {
             onClick={() => handleMetricCardClick('PRIORITY', 'CRITICAL')}
           >
             <Statistic
-              title={<Text type="secondary" strong className="text-xs">Critical</Text>}
+              title={<Text type="secondary" strong className="text-xs">{getStatLabel('critical')}</Text>}
               value={stats.criticalIncidents}
               prefix={<AlertOutlined className="text-red-500 mr-1" />}
               styles={{ content: { fontSize: '24px', fontWeight: 'bold' } }}

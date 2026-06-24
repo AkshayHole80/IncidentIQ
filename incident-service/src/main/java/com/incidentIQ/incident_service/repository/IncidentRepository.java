@@ -32,6 +32,14 @@ public interface IncidentRepository
             Priority priority
     );
 
+    long countByCreatedBy(Long createdBy);
+    long countByCreatedByAndStatus(Long createdBy, IncidentStatus status);
+    long countByCreatedByAndPriority(Long createdBy, Priority priority);
+
+    long countByAssignedTo(Long assignedTo);
+    long countByAssignedToAndStatus(Long assignedTo, IncidentStatus status);
+    long countByAssignedToAndPriority(Long assignedTo, Priority priority);
+
     List<Incident> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
             String title,
             String description
