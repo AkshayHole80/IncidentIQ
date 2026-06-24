@@ -14,11 +14,20 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
   kafka:
     bootstrap-servers: localhost:9092
+
 jwt:
   secret: aW5jaWRlbnRpcXN1cGVyc2VjcmV0a2V5aW5jaWRlbnRpcXN1cGVyc2VjcmV0a2V5MTIz
   expiration: 86400000
+
+aws:
+  access-key: ${AWS_ACCESS_KEY}
+  secret-key: ${AWS_SECRET_KEY}
+  region: ${AWS_REGION}
+  s3:
+    bucket-name: ${AWS_S3_BUCKET}
 
 eureka:
   instance:
