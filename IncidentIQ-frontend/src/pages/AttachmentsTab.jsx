@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Upload, Button, Space, Typography, Card, Empty, message, Spin, Tooltip, Tag, Popconfirm } from 'antd';
+import { Table, Upload, Button, Space, Typography, Card, Empty, message, Spin, Tooltip, Tag, Popconfirm, Modal } from 'antd';
 import { 
   InboxOutlined, 
   DownloadOutlined, 
+  EyeOutlined,
   FilePdfOutlined, 
   FileImageOutlined, 
   FileZipOutlined, 
@@ -11,7 +12,7 @@ import {
   PaperClipOutlined,
   DeleteOutlined
 } from '@ant-design/icons';
-import { getAttachments, uploadAttachment, deleteAttachment } from '../services/attachmentService';
+import { getAttachments, uploadAttachment, deleteAttachment, getAttachmentViewUrl, getAttachmentDownloadUrl } from '../services/attachmentService';
 import { useAuth } from '../context/AuthContext';
 
 const { Text, Title } = Typography;
@@ -22,6 +23,10 @@ const AttachmentsTab = ({ incidentId, incidentStatus }) => {
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [previewTitle, setPreviewTitle] = useState('');
+  const [previewType, setPreviewType] = useState('');
 
   const isIncidentOpen = incidentStatus === 'OPEN';
 
@@ -160,11 +165,38 @@ const AttachmentsTab = ({ incidentId, incidentStatus }) => {
             type="primary" 
             ghost 
             size="small" 
-            icon={<DownloadOutlined />}
-            onClick={() => window.open(record.fileUrl, '_blank')}
+            icon={<EyeOutlined />}
+            onClick={async () => {
+              try {
+                const response = await getAttachmentViewUrl(record.id);
+                setPreviewUrl(response.url);
+                setPreviewTitle(record.fileName);
+                setPreviewType(record.contentType);
+                setPreviewVisible(true);
+              } catch (err) {
+                message.error('Failed to retrieve view link.');
+              }
+            }}
             className="hover:scale-102 transition-transform"
           >
             View
+          </Button>
+          <Button 
+            type="primary" 
+            ghost 
+            size="small" 
+            icon={<DownloadOutlined />}
+            onClick={async () => {
+              try {
+                const response = await getAttachmentDownloadUrl(record.id);
+                window.open(response.url, '_blank');
+              } catch (err) {
+                message.error('Failed to retrieve download link.');
+              }
+            }}
+            className="hover:scale-102 transition-transform"
+          >
+            Download
           </Button>
           {isIncidentOpen ? (
             <Popconfirm
@@ -262,6 +294,38 @@ const AttachmentsTab = ({ incidentId, incidentStatus }) => {
           />
         )}
       </div>
+
+      <Modal
+        open={previewVisible}
+        title={previewTitle}
+        footer={null}
+        onCancel={() => setPreviewVisible(false)}
+        width={900}
+        centered
+        destroyOnClose
+        bodyStyle={{ height: '650px', display: 'flex', flexDirection: 'column', padding: 0 }}
+      >
+        <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%', overflow: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9f9f9' }}>
+          {previewType?.startsWith('image/') ? (
+            <img src={previewUrl} alt={previewTitle} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+          ) : previewType === 'application/pdf' ? (
+            <iframe src={previewUrl} title={previewTitle} width="100%" height="100%" style={{ border: 'none' }} />
+          ) : previewType?.startsWith('text/') ? (
+            <iframe src={previewUrl} title={previewTitle} width="100%" height="100%" style={{ border: 'none', backgroundColor: '#fff' }} />
+          ) : (
+            <div className="text-center p-6 bg-white rounded-lg shadow-sm">
+              <p className="mb-4 text-slate-500 font-medium">Preview not available for this file type.</p>
+              <Button 
+                type="primary" 
+                icon={<DownloadOutlined />}
+                onClick={() => window.open(previewUrl, '_blank')}
+              >
+                Open / Download File
+              </Button>
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };

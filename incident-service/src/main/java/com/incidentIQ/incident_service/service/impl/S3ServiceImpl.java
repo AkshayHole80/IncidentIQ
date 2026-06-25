@@ -9,9 +9,14 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.UUID;
 
 @Service
@@ -19,6 +24,7 @@ import java.util.UUID;
 public class S3ServiceImpl implements S3Service {
 
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
 
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
@@ -39,7 +45,7 @@ public class S3ServiceImpl implements S3Service {
                             .bucket(bucketName)
                             .key(key)
                             .contentType(
-                                    file.getContentType()
+                                     file.getContentType()
                             )
                             .build(),
                     RequestBody.fromBytes(
@@ -47,17 +53,9 @@ public class S3ServiceImpl implements S3Service {
                     )
             );
 
-            String fileUrl =
-                    String.format(
-                            "https://%s.s3.%s.amazonaws.com/%s",
-                            bucketName,
-                            "ap-south-1",
-                            key
-                    );
 
             return new S3UploadResponse(
-                    key,
-                    fileUrl
+                    key
             );
 
         } catch (IOException e) {
@@ -78,5 +76,58 @@ public class S3ServiceImpl implements S3Service {
                         .key(key)
                         .build()
         );
+    }
+
+    @Override
+    public String generateViewUrl(String key) {
+        if (key == null || key.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build();
+
+            GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(10))
+                    .getObjectRequest(getObjectRequest)
+                    .build();
+
+            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(getObjectPresignRequest);
+            return presignedRequest.url().toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate pre-signed view URL", e);
+        }
+    }
+
+    @Override
+    public String generateDownloadUrl(String key) {
+        if (key == null || key.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            String originalFilename = key;
+            int dashIndex = key.indexOf('-');
+            if (dashIndex != -1 && dashIndex < key.length() - 1) {
+                originalFilename = key.substring(dashIndex + 1);
+            }
+
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .responseContentDisposition("attachment; filename=\"" + originalFilename + "\"")
+                    .build();
+
+            GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(10))
+                    .getObjectRequest(getObjectRequest)
+                    .build();
+
+            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(getObjectPresignRequest);
+            return presignedRequest.url().toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate pre-signed download URL", e);
+        }
     }
 }

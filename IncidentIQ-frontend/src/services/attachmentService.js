@@ -23,6 +23,7 @@ export const uploadAttachment = async (incidentId, file) => {
   const response = await api.post(`/api/v1/incidents/${incidentId}/attachments`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
     },
   });
   return response.data;
@@ -35,6 +36,26 @@ export const uploadAttachment = async (incidentId, file) => {
  */
 export const deleteAttachment = async (attachmentId) => {
   const response = await api.delete(`/api/v1/incidents/attachments/${attachmentId}`);
+  return response.data;
+};
+
+/**
+ * Fetch pre-signed View URL for an attachment
+ * @param {string|number} attachmentId 
+ * @returns {Promise<object>} The URL wrapper object { url: "..." }
+ */
+export const getAttachmentViewUrl = async (attachmentId) => {
+  const response = await api.get(`/api/v1/incidents/attachments/${attachmentId}/view`);
+  return response.data;
+};
+
+/**
+ * Fetch pre-signed Download URL for an attachment
+ * @param {string|number} attachmentId 
+ * @returns {Promise<object>} The URL wrapper object { url: "..." }
+ */
+export const getAttachmentDownloadUrl = async (attachmentId) => {
+  const response = await api.get(`/api/v1/incidents/attachments/${attachmentId}/download`);
   return response.data;
 };
 

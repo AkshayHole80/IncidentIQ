@@ -9,13 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AttachmentResponseDto {
+public class AttachmentUrlResponseDto {
 
-    private Long id;
-
-    private String fileName;
-
-    private Long fileSize;
-
-    private String contentType;
+    private String url;
 }

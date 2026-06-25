@@ -7,5 +7,7 @@ public interface S3Service {
 
     S3UploadResponse uploadFile(MultipartFile file);
     void deleteFile(String key);
+    String generateViewUrl(String key);
+    String generateDownloadUrl(String key);
 
 }

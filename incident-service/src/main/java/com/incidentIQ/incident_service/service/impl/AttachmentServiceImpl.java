@@ -1,9 +1,11 @@
 package com.incidentIQ.incident_service.service.impl;
 
 import com.incidentIQ.incident_service.dto.response.AttachmentResponseDto;
+import com.incidentIQ.incident_service.dto.response.AttachmentUrlResponseDto;
 import com.incidentIQ.incident_service.dto.response.S3UploadResponse;
 import com.incidentIQ.incident_service.entity.Attachment;
 import com.incidentIQ.incident_service.entity.Incident;
+import com.incidentIQ.incident_service.exception.BadRequestException;
 import com.incidentIQ.incident_service.repository.AttachmentRepository;
 import com.incidentIQ.incident_service.repository.IncidentRepository;
 import com.incidentIQ.incident_service.service.AttachmentService;
@@ -57,9 +59,6 @@ public class AttachmentServiceImpl
                         .s3Key(
                                 uploadResponse.getKey()
                         )
-                        .fileUrl(
-                                uploadResponse.getFileUrl()
-                        )
                         .uploadedAt(
                                 LocalDateTime.now()
                         )
@@ -74,7 +73,6 @@ public class AttachmentServiceImpl
                 .builder()
                 .id(saved.getId())
                 .fileName(saved.getFileName())
-                .fileUrl(saved.getFileUrl())
                 .fileSize(saved.getFileSize())
                 .contentType(saved.getContentType())
                 .build();
@@ -96,9 +94,6 @@ public class AttachmentServiceImpl
                                 .fileName(
                                         a.getFileName()
                                 )
-                                .fileUrl(
-                                        a.getFileUrl()
-                                )
                                 .fileSize(
                                         a.getFileSize()
                                 )
@@ -118,7 +113,7 @@ public class AttachmentServiceImpl
                 attachmentRepository
                         .findById(attachmentId)
                         .orElseThrow(() ->
-                                new RuntimeException(
+                                new BadRequestException(
                                         "Attachment not found"
                                 ));
 
@@ -129,5 +124,21 @@ public class AttachmentServiceImpl
         attachmentRepository.delete(
                 attachment
         );
+    }
+
+    @Override
+    public AttachmentUrlResponseDto getAttachmentViewUrl(Long attachmentId) {
+        Attachment attachment = attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new BadRequestException("Attachment not found"));
+        String url = s3Service.generateViewUrl(attachment.getS3Key());
+        return new AttachmentUrlResponseDto(url);
+    }
+
+    @Override
+    public AttachmentUrlResponseDto getAttachmentDownloadUrl(Long attachmentId) {
+        Attachment attachment = attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new BadRequestException("Attachment not found"));
+        String url = s3Service.generateDownloadUrl(attachment.getS3Key());
+        return new AttachmentUrlResponseDto(url);
     }
 }

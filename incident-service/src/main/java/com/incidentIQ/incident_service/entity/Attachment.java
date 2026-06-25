@@ -28,7 +28,7 @@ public class Attachment {
 
     private String s3Key;
 
-    private String fileUrl;
+
 
     private LocalDateTime uploadedAt;
 }

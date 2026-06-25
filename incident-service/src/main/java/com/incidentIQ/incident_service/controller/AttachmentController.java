@@ -1,6 +1,7 @@
 package com.incidentIQ.incident_service.controller;
 
 import com.incidentIQ.incident_service.dto.response.AttachmentResponseDto;
+import com.incidentIQ.incident_service.dto.response.AttachmentUrlResponseDto;
 import com.incidentIQ.incident_service.service.AttachmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -67,5 +68,31 @@ public class AttachmentController {
     ) {
         attachmentService.deleteAttachment(attachmentId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/attachments/{attachmentId}/view")
+    @Operation(summary = "Get pre-signed view URL", description = "Generates a temporary pre-signed URL for viewing an attachment")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pre-signed view URL generated successfully"),
+            @ApiResponse(responseCode = "400", description = "Attachment not found"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized access")
+    })
+    public ResponseEntity<AttachmentUrlResponseDto> getAttachmentViewUrl(
+            @PathVariable Long attachmentId
+    ) {
+        return ResponseEntity.ok(attachmentService.getAttachmentViewUrl(attachmentId));
+    }
+
+    @GetMapping("/attachments/{attachmentId}/download")
+    @Operation(summary = "Get pre-signed download URL", description = "Generates a temporary pre-signed URL for downloading an attachment")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pre-signed download URL generated successfully"),
+            @ApiResponse(responseCode = "400", description = "Attachment not found"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized access")
+    })
+    public ResponseEntity<AttachmentUrlResponseDto> getAttachmentDownloadUrl(
+            @PathVariable Long attachmentId
+    ) {
+        return ResponseEntity.ok(attachmentService.getAttachmentDownloadUrl(attachmentId));
     }
 }

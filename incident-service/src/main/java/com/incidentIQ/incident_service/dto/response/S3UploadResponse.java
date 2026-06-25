@@ -9,5 +9,5 @@ public class S3UploadResponse {
 
     private String key;
 
-    private String fileUrl;
+
 }
