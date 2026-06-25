@@ -13,9 +13,11 @@ import com.incidentIQ.incident_service.enums.Category;
 import com.incidentIQ.incident_service.enums.IncidentStatus;
 import com.incidentIQ.incident_service.enums.Priority;
 import com.incidentIQ.incident_service.event.IncidentNotificationEvent;
+import com.incidentIQ.incident_service.exception.BadRequestException;
 import com.incidentIQ.incident_service.exception.ForbiddenException;
 import com.incidentIQ.incident_service.exception.IncidentNotFoundException;
 import com.incidentIQ.incident_service.exception.UnauthorizedActionException;
+import feign.FeignException;
 import com.incidentIQ.incident_service.kafka.KafkaProducerService;
 import com.incidentIQ.incident_service.entity.Attachment;
 import com.incidentIQ.incident_service.repository.AttachmentRepository;
@@ -55,8 +57,17 @@ public class IncidentServiceImpl implements IncidentService {
 
         log.info("Creating incident for user: {}", email);
 
-        UserResponseDto user =
-                userServiceClient.getUserByEmail(email);
+        UserResponseDto user;
+        try {
+            user = userServiceClient.getUserByEmail(email);
+            if (user == null) {
+                log.error("User service returned null profile for email: {}", email);
+                throw new BadRequestException("User profile not found for email: " + email);
+            }
+        } catch (FeignException ex) {
+            log.error("Failed to retrieve user profile for email: {} from user-service: {}", email, ex.getMessage());
+            throw new BadRequestException("Failed to retrieve user profile from user-service: " + ex.getMessage());
+        }
 
         Priority priority = Priority.MEDIUM;
         Category category = Category.APPLICATION;
@@ -484,8 +495,17 @@ public class IncidentServiceImpl implements IncidentService {
         String email =
                 SecurityUtils.getCurrentUserEmail();
 
-        return userServiceClient
-                .getUserByEmail(email);
+        try {
+            UserResponseDto user = userServiceClient.getUserByEmail(email);
+            if (user == null) {
+                log.error("User service returned null profile for email: {}", email);
+                throw new UnauthorizedActionException("User profile not found for email: " + email);
+            }
+            return user;
+        } catch (FeignException ex) {
+            log.error("Failed to retrieve user profile for email: {} from user-service: {}", email, ex.getMessage());
+            throw new UnauthorizedActionException("Failed to retrieve user profile from user-service: " + ex.getMessage());
+        }
     }
 
     private void validateAssignedEngineer(
@@ -544,8 +564,17 @@ public class IncidentServiceImpl implements IncidentService {
                 AuditAction.RESOLVED,
                 "Incident resolved"
         );
-        List<UserResponseDto> admins =
-                userServiceClient.getAdmins();
+        List<UserResponseDto> admins;
+        try {
+            admins = userServiceClient.getAdmins();
+            if (admins == null) {
+                log.error("User service returned null admins list");
+                admins = List.of();
+            }
+        } catch (FeignException ex) {
+            log.error("Failed to retrieve admins list from user-service: {}", ex.getMessage());
+            throw new UnauthorizedActionException("Failed to retrieve admin list from user-service: " + ex.getMessage());
+        }
 
 
         for (UserResponseDto admin : admins) {
