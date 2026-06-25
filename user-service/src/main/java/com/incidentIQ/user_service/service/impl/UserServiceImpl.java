@@ -1,5 +1,6 @@
 package com.incidentIQ.user_service.service.impl;
 
+import com.incidentIQ.user_service.constant.CacheNames;
 import com.incidentIQ.user_service.dto.response.UserResponseDto;
 import com.incidentIQ.user_service.entity.User;
 import com.incidentIQ.user_service.enums.Role;
@@ -24,7 +25,7 @@ public class UserServiceImpl implements UserService {
     private final ModelMapper modelMapper;
 
     @Cacheable(
-            value = "usersByEmail",
+            value = CacheNames.USERS_BY_EMAIL,
             key = "#email"
     )
     @Override
@@ -50,22 +51,13 @@ public class UserServiceImpl implements UserService {
         String email =
                 SecurityUtils.getCurrentUserEmail();
 
-        User user =
-                userRepository.findByEmail(email)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "User not found"
-                                ));
-
-        return modelMapper.map(
-                user,
-                UserResponseDto.class
-        );
+        return getUserByEmail(email);
     }
 
+    @Cacheable(CacheNames.SUPPORT_ENGINEERS)
     @Override
     public List<UserResponseDto> getSupportEngineers() {
-
+        log.info("Loading support engineers from PostgreSQL...");
         return userRepository
                 .findByRole(Role.SUPPORT_ENGINEER)
                 .stream()
@@ -75,6 +67,11 @@ public class UserServiceImpl implements UserService {
                                 UserResponseDto.class))
                 .toList();
     }
+
+    @Cacheable(
+            value = CacheNames.USERS_BY_ID,
+            key = "#id"
+    )
     @Override
     public UserResponseDto getUserById(Long id) {
 
@@ -90,9 +87,13 @@ public class UserServiceImpl implements UserService {
                 UserResponseDto.class
         );
     }
+
+    @Cacheable(
+            value = CacheNames.ADMINS
+    )
     @Override
     public List<UserResponseDto> getAdmins() {
-
+        log.info("Loading admins from PostgreSQL...");
         return userRepository
                 .findByRole(Role.ADMIN)
                 .stream()
