@@ -9,19 +9,27 @@ import com.incidentIQ.user_service.service.UserService;
 
 import com.incidentIQ.user_service.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+
+    @Cacheable(
+            value = "usersByEmail",
+            key = "#email"
+    )
     @Override
     public UserResponseDto getUserByEmail(String email) {
-
+        log.info("Loading user from PostgreSQL...");
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
