@@ -1,5 +1,6 @@
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
+import { config } from '../config/config';
 
 let stompClient = null;
 let socket = null;
@@ -16,8 +17,8 @@ export const connectWebSocket = (userId, onNotification, onError) => {
   disconnectWebSocket();
 
   try {
-    console.log('Initiating SockJS connection to http://localhost:8084/ws');
-    socket = new SockJS('http://localhost:8084/ws');
+    console.log(`Initiating SockJS connection to ${config.WS_URL}`);
+    socket = new SockJS(config.WS_URL);
 
     socket.onopen = () => {
       console.log('WebSocket/SockJS connection opened successfully');

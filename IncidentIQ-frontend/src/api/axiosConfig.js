@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { config } from '../config/config';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080', // Directs requests to the API Gateway
+  baseURL: config.API_BASE_URL, // Directs requests to the API Gateway
   headers: {
     'Content-Type': 'application/json',
   },

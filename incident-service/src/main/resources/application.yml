@@ -6,9 +6,9 @@ spring:
     name: INCIDENT-SERVICE
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/incidentiq_incident_db
-    username: postgres
-    password: root
+    url: ${INCIDENT_DB_URL:jdbc:postgresql://localhost:5432/incidentiq_incident_db}
+    username: ${INCIDENT_DB_USERNAME:postgres}
+    password: ${INCIDENT_DB_PASSWORD:root}
 
   jpa:
     hibernate:
@@ -16,7 +16,7 @@ spring:
     show-sql: true
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 
 jwt:
   secret: aW5jaWRlbnRpcXN1cGVyc2VjcmV0a2V5aW5jaWRlbnRpcXN1cGVyc2VjcmV0a2V5MTIz
@@ -31,9 +31,9 @@ aws:
 
 eureka:
   instance:
-    hostname: localhost
+    hostname: ${INCIDENT_SERVICE_HOSTNAME:localhost}
     prefer-ip-address: true
 
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}

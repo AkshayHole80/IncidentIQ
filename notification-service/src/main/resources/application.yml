@@ -6,16 +6,16 @@ spring:
     name: NOTIFICATION-SERVICE
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/incidentiq_notification_db
-    username: postgres
-    password: root
+    url: ${NOTIFICATION_DB_URL:jdbc:postgresql://localhost:5432/incidentiq_notification_db}
+    username: ${NOTIFICATION_DB_USERNAME:postgres}
+    password: ${NOTIFICATION_DB_PASSWORD:root}
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 
     consumer:
       group-id: notification-group
@@ -32,7 +32,8 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_SERVER_URI:http://localhost:8761/eureka}
 
   instance:
+    hostname: ${NOTIFICATION_SERVICE_HOSTNAME:localhost}
     prefer-ip-address: true

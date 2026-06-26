@@ -8,8 +8,8 @@ groq:
   api-key: ${GROQ_API_KEY}
 eureka:
   instance:
-    hostname: localhost
+    hostname: ${AI_SERVICE_HOSTNAME:localhost}
     prefer-ip-address: true
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
