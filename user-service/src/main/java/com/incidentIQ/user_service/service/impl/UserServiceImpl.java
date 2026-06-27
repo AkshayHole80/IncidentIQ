@@ -24,10 +24,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
-    @Cacheable(
-            value = CacheNames.USERS_BY_EMAIL,
-            key = "#email"
-    )
     @Override
     public UserResponseDto getUserByEmail(String email) {
         log.info("Loading user from PostgreSQL...");
@@ -36,13 +32,7 @@ public class UserServiceImpl implements UserService {
                         new ResourceNotFoundException(
                                 "User not found with email: " + email));
 
-        return UserResponseDto.builder()
-                .id(user.getId())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .role(user.getRole())
-                .build();
+        return  modelMapper.map(user, UserResponseDto.class);
     }
 
     @Override
@@ -53,7 +43,6 @@ public class UserServiceImpl implements UserService {
 
         return getUserByEmail(email);
     }
-
     @Cacheable(CacheNames.SUPPORT_ENGINEERS)
     @Override
     public List<UserResponseDto> getSupportEngineers() {

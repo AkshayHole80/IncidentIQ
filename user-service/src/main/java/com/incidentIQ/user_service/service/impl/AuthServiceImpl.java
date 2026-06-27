@@ -11,6 +11,9 @@ import com.incidentIQ.user_service.security.CustomUserDetails;
 import com.incidentIQ.user_service.security.JwtService;
 import com.incidentIQ.user_service.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+import com.incidentIQ.user_service.constant.CacheNames;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +29,10 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authenticationManager;
 
+//    @Caching(evict = {
+//            @CacheEvict(value = CacheNames.SUPPORT_ENGINEERS, allEntries = true),
+//            @CacheEvict(value = CacheNames.ADMINS, allEntries = true)
+//    })
     @Override
     public AuthResponseDto register(RegisterRequestDto request) {
 

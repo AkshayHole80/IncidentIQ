@@ -1,5 +1,7 @@
 .idea/
 *.iml
 target/
-.env
+.env.local
+.env.docker
 application-local.yml
+docker-compose-local.yml

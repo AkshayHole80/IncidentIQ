@@ -1,41 +1,41 @@
-server:
-  port: 8081
+  server:
+    port: 8081
 
-spring:
-  application:
-    name: USER-SERVICE
+  spring:
+    application:
+      name: USER-SERVICE
 
-  datasource:
-    url: ${USER_DB_URL:jdbc:postgresql://localhost:5432/incidentiq_user_db}
-    username: ${USER_DB_USERNAME:postgres}
-    password: ${USER_DB_PASSWORD:root}
+    datasource:
+      url: ${USER_DB_URL:jdbc:postgresql://localhost:5432/incidentiq_user_db}
+      username: ${USER_DB_USERNAME:postgres}
+      password: ${USER_DB_PASSWORD:root}
 
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
+    jpa:
+      hibernate:
+        ddl-auto: update
+      show-sql: true
 
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      timeout: 2s
+    data:
+      redis:
+        host: ${REDIS_HOST:localhost}
+        port: ${REDIS_PORT:6379}
+        timeout: 2s
 
-jwt:
-  secret: ${JWT_SECRET:aW5jaWRlbnRpcXN1cGVyc2VjcmV0a2V5aW5jaWRlbnRpcXN1cGVyc2VjcmV0a2V5MTIz}
-  expiration: ${JWT_EXPIRATION:3600000}
+  jwt:
+    secret: ${JWT_SECRET:aW5jaWRlbnRpcXN1cGVyc2VjcmV0a2V5aW5jaWRlbnRpcXN1cGVyc2VjcmV0a2V5MTIz}
+    expiration: ${JWT_EXPIRATION:3600000}
 
-eureka:
-  instance:
-    hostname: ${USER_SERVICE_HOSTNAME:localhost}
-    prefer-ip-address: true
+  eureka:
+    instance:
+      hostname: ${USER_SERVICE_HOSTNAME:localhost}
+      prefer-ip-address: true
 
-  client:
-    service-url:
-      defaultZone: ${EUREKA_SERVER_URI:http://localhost:8761/eureka}
+    client:
+      service-url:
+        defaultZone: ${EUREKA_SERVER_URI:http://localhost:8761/eureka}
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,caches
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info,metrics,caches
