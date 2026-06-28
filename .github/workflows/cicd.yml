@@ -135,7 +135,7 @@ jobs:
             docker image prune -af
 
             echo "Waiting for services..."
-            sleep 30
+            sleep 150
 
             echo "Checking Gateway..."
             curl -f http://localhost:8080/actuator/health
