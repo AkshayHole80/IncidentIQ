@@ -1,0 +1,146 @@
+name: IncidentIQ CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      ###################################################
+      # FRONTEND
+      ###################################################
+
+      - name: Build & Push Frontend
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest ./IncidentIQ-frontend
+          docker push ${{ secrets.DOCKER_USERNAME }}/frontend:latest
+
+      ###################################################
+      # EUREKA
+      ###################################################
+
+      - name: Build & Push Eureka
+        run: |
+          chmod +x ./eureka-server/mvnw
+          ./eureka-server/mvnw -f ./eureka-server/pom.xml clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/eureka-server:latest ./eureka-server
+          docker push ${{ secrets.DOCKER_USERNAME }}/eureka-server:latest
+
+      ###################################################
+      # GATEWAY
+      ###################################################
+
+      - name: Build & Push Gateway
+        run: |
+          chmod +x ./gateway-service/mvnw
+          ./gateway-service/mvnw -f ./gateway-service/pom.xml clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/gateway-service:latest ./gateway-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/gateway-service:latest
+
+      ###################################################
+      # USER SERVICE
+      ###################################################
+
+      - name: Build & Push User Service
+        run: |
+          chmod +x ./user-service/mvnw
+          ./user-service/mvnw -f ./user-service/pom.xml clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/user-service:latest ./user-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/user-service:latest
+
+      ###################################################
+      # INCIDENT SERVICE
+      ###################################################
+
+      - name: Build & Push Incident Service
+        run: |
+          chmod +x ./incident-service/mvnw
+          ./incident-service/mvnw -f ./incident-service/pom.xml clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/incident-service:latest ./incident-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/incident-service:latest
+
+      ###################################################
+      # NOTIFICATION SERVICE
+      ###################################################
+
+      - name: Build & Push Notification Service
+        run: |
+          chmod +x ./notification-service/mvnw
+          ./notification-service/mvnw -f ./notification-service/pom.xml clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/notification-service:latest ./notification-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/notification-service:latest
+
+      ###################################################
+      # AI SERVICE
+      ###################################################
+
+      - name: Build & Push AI Service
+        run: |
+          chmod +x ./ai-service/mvnw
+          ./ai-service/mvnw -f ./ai-service/pom.xml clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/ai-service:latest ./ai-service
+          docker push ${{ secrets.DOCKER_USERNAME }}/ai-service:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.2.0
+
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+
+          script: |
+            cd ~/IncidentIQ
+
+            echo "Pulling latest code..."
+            git pull origin main
+
+            echo "Pulling latest Docker images..."
+            docker compose pull
+
+            echo "Stopping old containers..."
+            docker compose down
+
+            echo "Starting updated containers..."
+            docker compose up -d --remove-orphans
+
+            echo "Cleaning unused Docker images..."
+            docker image prune -af
+
+            echo "Waiting for services..."
+            sleep 30
+
+            echo "Checking Gateway..."
+            curl -f http://localhost:8080/actuator/health
+
+            echo "Checking Frontend..."
+            curl -f http://localhost:3000
+
+            echo "Deployment Successful!"
