@@ -6,9 +6,9 @@ spring:
     name: INCIDENT-SERVICE
 
   datasource:
-    url: ${INCIDENT_DB_URL:jdbc:postgresql://localhost:5432/incidentiq_incident_db}
-    username: ${INCIDENT_DB_USERNAME:postgres}
-    password: ${INCIDENT_DB_PASSWORD:root}
+    url: ${INCIDENT_DB_URL}
+    username: ${INCIDENT_DB_USERNAME}
+    password: ${INCIDENT_DB_PASSWORD}
 
   jpa:
     hibernate:

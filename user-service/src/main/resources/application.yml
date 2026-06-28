@@ -6,9 +6,9 @@
       name: USER-SERVICE
 
     datasource:
-      url: ${USER_DB_URL:jdbc:postgresql://localhost:5432/incidentiq_user_db}
-      username: ${USER_DB_USERNAME:postgres}
-      password: ${USER_DB_PASSWORD:root}
+      url: ${USER_DB_URL}
+      username: ${USER_DB_USERNAME}
+      password: ${USER_DB_PASSWORD}
 
     jpa:
       hibernate:

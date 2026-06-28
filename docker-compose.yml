@@ -59,7 +59,7 @@ services:
   ####################################################
   eureka-server:
 
-    image: incidentiq/eureka-server
+    image: mrakshayhole/eureka-server:v1.0.0
 
     container_name: eureka-server
 
@@ -86,7 +86,7 @@ services:
   ####################################################
   gateway-service:
 
-    image: incidentiq/gateway-service
+    image: mrakshayhole/gateway-service:v1.0.0
 
     container_name: gateway-service
 
@@ -109,7 +109,7 @@ services:
   ####################################################
   user-service:
 
-    image: incidentiq/user-service
+    image: mrakshayhole/user-service:v1.0.0
 
     container_name: user-service
 
@@ -141,7 +141,9 @@ services:
   # INCIDENT SERVICE
   ####################################################
   incident-service:
-    image: incidentiq/incident-service
+
+    image: mrakshayhole/incident-service:v1.0.0
+
     container_name: incident-service
 
     env_file:
@@ -167,7 +169,7 @@ services:
   # NOTIFICATION SERVICE
   ####################################################
   notification-service:
-    image: incidentiq/notification-service
+    image: mrakshayhole/notification-service:v1.0.0
     container_name: notification-service
 
     env_file:
@@ -194,7 +196,8 @@ services:
   # AI SERVICE
   ####################################################
   ai-service:
-    image: incidentiq/ai-service
+    image: mrakshayhole/ai-service:v1.0.0
+
     container_name: ai-service
 
     env_file:
@@ -215,7 +218,8 @@ services:
   # FRONTEND
   ####################################################
   frontend:
-    image: incidentiq/frontend
+    image: mrakshayhole/frontend:v1.0.0
+
     container_name: frontend
 
     ports:
