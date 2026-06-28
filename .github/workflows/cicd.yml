@@ -55,7 +55,7 @@ jobs:
       - name: Build & Push Gateway
         run: |
           chmod +x ./gatway-service/mvnw
-          ./gateway-service/mvnw -f ./gatway-service/pom.xml clean package -DskipTests
+          ./gatway-service/mvnw -f ./gatway-service/pom.xml clean package -DskipTests
           docker build -t ${{ secrets.DOCKER_USERNAME }}/gateway-service:latest ./gatway-service
           docker push ${{ secrets.DOCKER_USERNAME }}/gateway-service:latest
 
