@@ -59,7 +59,7 @@ services:
   ####################################################
   eureka-server:
 
-    image: mrakshayhole/eureka-server:v1.0.0
+    image: mrakshayhole/eureka-server:latest
 
     container_name: eureka-server
 
@@ -86,7 +86,7 @@ services:
   ####################################################
   gateway-service:
 
-    image: mrakshayhole/gateway-service:v1.0.0
+    image: mrakshayhole/gateway-service:latest
 
     container_name: gateway-service
 
@@ -109,7 +109,7 @@ services:
   ####################################################
   user-service:
 
-    image: mrakshayhole/user-service:v1.0.0
+    image: mrakshayhole/user-service:latest
 
     container_name: user-service
 
@@ -142,7 +142,7 @@ services:
   ####################################################
   incident-service:
 
-    image: mrakshayhole/incident-service:v1.0.0
+    image: mrakshayhole/incident-service:latest
 
     container_name: incident-service
 
@@ -169,7 +169,7 @@ services:
   # NOTIFICATION SERVICE
   ####################################################
   notification-service:
-    image: mrakshayhole/notification-service:v1.0.0
+    image: mrakshayhole/notification-service:latest
     container_name: notification-service
 
     env_file:
@@ -196,7 +196,7 @@ services:
   # AI SERVICE
   ####################################################
   ai-service:
-    image: mrakshayhole/ai-service:v1.0.0
+    image: mrakshayhole/ai-service:latest
 
     container_name: ai-service
 
@@ -218,7 +218,7 @@ services:
   # FRONTEND
   ####################################################
   frontend:
-    image: mrakshayhole/frontend:v1.0.0
+    image: mrakshayhole/frontend:latest
 
     container_name: frontend
 
