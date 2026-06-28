@@ -4,9 +4,9 @@ name: incidentiq
 
 services:
 
-  ####################################################
+
   # REDIS
-  ####################################################
+
   redis:
     image: redis:7-alpine
     container_name: redis
@@ -28,9 +28,9 @@ services:
       - incidentiq-network
 
 
-  ####################################################
+
   # KAFKA (KRaft)
-  ####################################################
+
   kafka:
     image: apache/kafka:latest
     container_name: kafka
@@ -54,9 +54,9 @@ services:
       - incidentiq-network
 
 
-  ####################################################
+
   # EUREKA
-  ####################################################
+
   eureka-server:
 
     image: mrakshayhole/eureka-server:latest
@@ -81,9 +81,9 @@ services:
         condition: service_healthy
 
 
-  ####################################################
+
   # GATEWAY
-  ####################################################
+
   gateway-service:
 
     image: mrakshayhole/gateway-service:latest
@@ -104,9 +104,9 @@ services:
 
     networks:
       - incidentiq-network
-  ####################################################
+
   # USER SERVICE
-  ####################################################
+
   user-service:
 
     image: mrakshayhole/user-service:latest
@@ -137,9 +137,9 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  ####################################################
+
   # INCIDENT SERVICE
-  ####################################################
+
   incident-service:
 
     image: mrakshayhole/incident-service:latest
@@ -165,9 +165,9 @@ services:
 
     extra_hosts:
       - "host.docker.internal:host-gateway"
-  ####################################################
+
   # NOTIFICATION SERVICE
-  ####################################################
+
   notification-service:
     image: mrakshayhole/notification-service:latest
     container_name: notification-service
@@ -192,9 +192,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  ####################################################
-  # AI SERVICE
-  ####################################################
+   # AI SERVICE
+
   ai-service:
     image: mrakshayhole/ai-service:latest
 
@@ -214,9 +213,9 @@ services:
 
     networks:
       - incidentiq-network
-  ####################################################
-  # FRONTEND
-  ####################################################
+
+   # FRONTEND
+
   frontend:
     image: mrakshayhole/frontend:latest
 
