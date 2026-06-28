@@ -6,7 +6,7 @@ import api from '../api/axiosConfig';
  * @returns {Promise<Array>} List of notifications
  */
 export const getNotifications = async (userId) => {
-  const response = await api.get(`/api/v1/notifications/user/${userId}`);
+  const response = await api.get(`/v1/notifications/user/${userId}`);
   return response.data;
 };
 
@@ -16,7 +16,7 @@ export const getNotifications = async (userId) => {
  * @returns {Promise<number>} Unread count
  */
 export const getUnreadCount = async (userId) => {
-  const response = await api.get(`/api/v1/notifications/user/${userId}/unread-count`);
+  const response = await api.get(`/v1/notifications/user/${userId}/unread-count`);
   // Resilient handling in case backend returns number or { count: X }
   if (typeof response.data === 'number') {
     return response.data;
@@ -30,6 +30,6 @@ export const getUnreadCount = async (userId) => {
  * @returns {Promise<object>} updated notification DTO
  */
 export const markAsRead = async (notificationId) => {
-  const response = await api.patch(`/api/v1/notifications/${notificationId}/read`);
+  const response = await api.patch(`/v1/notifications/${notificationId}/read`);
   return response.data;
 };

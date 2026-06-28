@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
   const fetchUserProfile = async (token, role) => {
     try {
       // 1. Try to call the specified GET /api/v1/users/me
-      const meResponse = await api.get('/api/v1/users/me');
+      const meResponse = await api.get('/v1/users/me');
       setUser(meResponse.data);
       localStorage.setItem('role', meResponse.data.role);
       localStorage.setItem('userEmail', meResponse.data.email);
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
       const decoded = parseJwt(token);
       if (decoded && decoded.sub) {
         try {
-          const emailResponse = await api.get(`/api/v1/users/email/${decoded.sub}`);
+          const emailResponse = await api.get(`/v1/users/email/${decoded.sub}`);
           setUser(emailResponse.data);
           localStorage.setItem('role', emailResponse.data.role);
           localStorage.setItem('userEmail', emailResponse.data.email);
@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     setLoading(true);
     try {
-      const response = await api.post('/api/v1/auth/login', { email, password });
+      const response = await api.post('/v1/auth/login', { email, password });
       const { token, role } = response.data;
       
       localStorage.setItem('token', token);
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (registerData) => {
     setLoading(true);
     try {
-      const response = await api.post('/api/v1/auth/register', registerData);
+      const response = await api.post('/v1/auth/register', registerData);
       const { token, role } = response.data;
       
       localStorage.setItem('token', token);

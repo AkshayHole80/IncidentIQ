@@ -143,13 +143,13 @@ const IncidentDetails = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get(`/api/v1/incidents/${id}`);
+      const response = await api.get(`/v1/incidents/${id}`);
       const incidentData = response.data;
       setIncident(incidentData);
 
       // Fetch creator details using the new GET /api/v1/users/{id} endpoint
       try {
-        const creatorResponse = await api.get(`/api/v1/users/${incidentData.createdBy}`);
+        const creatorResponse = await api.get(`/v1/users/${incidentData.createdBy}`);
         setCreator(creatorResponse.data);
       } catch (creatorErr) {
         console.warn(`Failed to load creator profile for user #${incidentData.createdBy}`, creatorErr);
@@ -169,7 +169,7 @@ const IncidentDetails = () => {
 
   const fetchEngineers = async () => {
     try {
-      const response = await api.get('/api/v1/users/support-engineers');
+      const response = await api.get('/v1/users/support-engineers');
       setEngineers(response.data);
       const mapping = {};
       response.data.forEach(eng => {
@@ -220,7 +220,7 @@ const IncidentDetails = () => {
   const handleAssign = async (values) => {
     setAssignLoading(true);
     try {
-      await api.put(`/api/v1/incidents/${id}/assign`, {
+      await api.put(`/v1/incidents/${id}/assign`, {
         assignedTo: values.engineerId,
       });
       message.success('Engineer successfully assigned. Ticket set to IN PROGRESS.');
@@ -236,7 +236,7 @@ const IncidentDetails = () => {
   const handleResolve = async (values) => {
     setResolveLoading(true);
     try {
-      await api.patch(`/api/v1/incidents/${id}/resolve`, {
+      await api.patch(`/v1/incidents/${id}/resolve`, {
         resolutionNotes: values.resolutionNotes,
       });
 
@@ -263,7 +263,7 @@ const IncidentDetails = () => {
 
   const handleClose = async () => {
     try {
-      await api.patch(`/api/v1/incidents/${id}/close`);
+      await api.patch(`/v1/incidents/${id}/close`);
       message.success('Incident archived and CLOSED.');
       fetchIncidentDetails();
     } catch (err) {

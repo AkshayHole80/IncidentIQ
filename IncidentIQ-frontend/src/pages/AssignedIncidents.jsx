@@ -22,7 +22,7 @@ const AssignedIncidents = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get('/api/v1/incidents/assigned');
+      const response = await api.get('/v1/incidents/assigned');
       setIncidents(sortIncidents(response.data));
     } catch (err) {
       console.error('Failed to load assigned incidents', err);
@@ -65,7 +65,7 @@ const AssignedIncidents = () => {
   const handleResolveSubmit = async (values) => {
     setSubmitLoading(true);
     try {
-      await api.patch(`/api/v1/incidents/${selectedIncident.id}/resolve`, {
+      await api.patch(`/v1/incidents/${selectedIncident.id}/resolve`, {
         resolutionNotes: values.resolutionNotes,
       });
       message.success(`Incident #${selectedIncident.id} has been marked as RESOLVED.`);

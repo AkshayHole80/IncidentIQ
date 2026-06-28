@@ -101,16 +101,16 @@ const Dashboard = () => {
     setLoading(true);
     setError(null);
     try {
-      const statsRes = await api.get('/api/v1/incidents/stats');
+      const statsRes = await api.get('/v1/incidents/stats');
       setStats(statsRes.data);
 
       let incidentsRes;
       if (user.role === 'ADMIN') {
-        incidentsRes = await api.get('/api/v1/incidents/search', { params: { keyword: '' } });
+        incidentsRes = await api.get('/v1/incidents/search', { params: { keyword: '' } });
       } else if (user.role === 'SUPPORT_ENGINEER') {
-        incidentsRes = await api.get('/api/v1/incidents/assigned');
+        incidentsRes = await api.get('/v1/incidents/assigned');
       } else {
-        incidentsRes = await api.get('/api/v1/incidents');
+        incidentsRes = await api.get('/v1/incidents');
       }
 
       const data = sortIncidents(incidentsRes.data);

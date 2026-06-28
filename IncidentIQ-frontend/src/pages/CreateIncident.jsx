@@ -42,7 +42,7 @@ const CreateIncident = () => {
     setLoading(true);
     setShowAiModal(true);
     try {
-      const response = await api.post('/api/v1/incidents', {
+      const response = await api.post('/v1/incidents', {
         title: values.title,
         description: values.description,
       });

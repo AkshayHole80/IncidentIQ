@@ -7,7 +7,7 @@ import api from '../api/axiosConfig';
  * @returns {Promise<object>} updated incident DTO
  */
 export const updateIncident = async (id, payload) => {
-  const response = await api.put(`/api/v1/incidents/${id}`, payload);
+  const response = await api.put(`/v1/incidents/${id}`, payload);
   return response.data;
 };
 
@@ -17,7 +17,7 @@ export const updateIncident = async (id, payload) => {
  * @returns {Promise<void>}
  */
 export const deleteIncident = async (id) => {
-  const response = await api.delete(`/api/v1/incidents/${id}`);
+  const response = await api.delete(`/v1/incidents/${id}`);
   return response.data;
 };
 

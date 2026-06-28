@@ -40,7 +40,7 @@ const AllIncidents = () => {
 
   const fetchEngineers = async () => {
     try {
-      const response = await api.get('/api/v1/users/support-engineers');
+      const response = await api.get('/v1/users/support-engineers');
       setEngineers(response.data);
       const mapping = {};
       response.data.forEach(eng => {
@@ -59,13 +59,13 @@ const AllIncidents = () => {
     try {
       let response;
       if (selectedStatus) {
-        response = await api.get(`/api/v1/incidents/status/${selectedStatus}`);
+        response = await api.get(`/v1/incidents/status/${selectedStatus}`);
       } else if (selectedPriority) {
-        response = await api.get(`/api/v1/incidents/priority/${selectedPriority}`);
+        response = await api.get(`/v1/incidents/priority/${selectedPriority}`);
       } else if (selectedCategory) {
-        response = await api.get(`/api/v1/incidents/category/${selectedCategory}`);
+        response = await api.get(`/v1/incidents/category/${selectedCategory}`);
       } else {
-        response = await api.get(`/api/v1/incidents/search`, {
+        response = await api.get(`/v1/incidents/search`, {
           params: { keyword: searchKeyword }
         });
       }
@@ -104,7 +104,7 @@ const AllIncidents = () => {
     setSelectedCategory(null);
     // Directly fetch all
     setLoading(true);
-    api.get(`/api/v1/incidents/search`, { params: { keyword: '' } })
+    api.get(`/v1/incidents/search`, { params: { keyword: '' } })
       .then(res => setIncidents(sortIncidents(res.data)))
       .catch(() => setError('Failed to reset list.'))
       .finally(() => setLoading(false));
@@ -119,7 +119,7 @@ const AllIncidents = () => {
   const handleAssignSubmit = async (values) => {
     setAssignLoading(true);
     try {
-      await api.put(`/api/v1/incidents/${selectedIncident.id}/assign`, {
+      await api.put(`/v1/incidents/${selectedIncident.id}/assign`, {
         assignedTo: values.engineerId,
       });
       message.success(`Incident #${selectedIncident.id} assigned to ${engineerMap[values.engineerId] || 'Engineer'}.`);
@@ -136,7 +136,7 @@ const AllIncidents = () => {
 
   const handleCloseIncident = async (id) => {
     try {
-      await api.patch(`/api/v1/incidents/${id}/close`);
+      await api.patch(`/v1/incidents/${id}/close`);
       message.success(`Incident #${id} has been CLOSED.`);
       fetchIncidents();
     } catch (err) {

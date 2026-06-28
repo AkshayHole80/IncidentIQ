@@ -57,7 +57,7 @@ const MyIncidents = () => {
     setError(null);
     try {
       // In the backend, GET /api/v1/incidents retrieves incidents created by the current user
-      const response = await api.get('/api/v1/incidents');
+      const response = await api.get('/v1/incidents');
       setIncidents(sortIncidents(response.data));
     } catch (err) {
       console.error('Failed to load my incidents', err);

@@ -6,7 +6,7 @@ import api from '../api/axiosConfig';
  * @returns {Promise<Array>} List of attachments
  */
 export const getAttachments = async (incidentId) => {
-  const response = await api.get(`/api/v1/incidents/${incidentId}/attachments`);
+  const response = await api.get(`/v1/incidents/${incidentId}/attachments`);
   return response.data;
 };
 
@@ -20,7 +20,7 @@ export const uploadAttachment = async (incidentId, file) => {
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await api.post(`/api/v1/incidents/${incidentId}/attachments`, formData, {
+  const response = await api.post(`/v1/incidents/${incidentId}/attachments`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
       'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -35,7 +35,7 @@ export const uploadAttachment = async (incidentId, file) => {
  * @returns {Promise<void>}
  */
 export const deleteAttachment = async (attachmentId) => {
-  const response = await api.delete(`/api/v1/incidents/attachments/${attachmentId}`);
+  const response = await api.delete(`/v1/incidents/attachments/${attachmentId}`);
   return response.data;
 };
 
@@ -45,7 +45,7 @@ export const deleteAttachment = async (attachmentId) => {
  * @returns {Promise<object>} The URL wrapper object { url: "..." }
  */
 export const getAttachmentViewUrl = async (attachmentId) => {
-  const response = await api.get(`/api/v1/incidents/attachments/${attachmentId}/view`);
+  const response = await api.get(`/v1/incidents/attachments/${attachmentId}/view`);
   return response.data;
 };
 
@@ -55,7 +55,7 @@ export const getAttachmentViewUrl = async (attachmentId) => {
  * @returns {Promise<object>} The URL wrapper object { url: "..." }
  */
 export const getAttachmentDownloadUrl = async (attachmentId) => {
-  const response = await api.get(`/api/v1/incidents/attachments/${attachmentId}/download`);
+  const response = await api.get(`/v1/incidents/attachments/${attachmentId}/download`);
   return response.data;
 };
 
