@@ -1,183 +1,199 @@
-# IncidentIQ: Microservices IT Incident Management System
+#  IncidentIQ: Enterprise Microservices IT Incident Management System
 
-IncidentIQ is a robust, production-ready IT Incident Management platform designed for reporting, classifying, tracking, and resolving IT issues. The system features automatic incident classification (Priority and Category) powered by a Groq Large Language Model, secure file attachment handling via Amazon S3, auditing trails, and real-time user notification dispatching.
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5+-green.svg?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-19-blue.svg?style=for-the-badge&logo=react)](https://react.dev)
+[![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-latest-black.svg?style=for-the-badge&logo=apachekafka)](https://kafka.apache.org/)
+[![Redis](https://img.shields.io/badge/Redis-7-red.svg?style=for-the-badge&logo=redis)](https://redis.io/)
+[![Docker](https://img.shields.io/badge/Docker-Enabled-blue.svg?style=for-the-badge&logo=docker)](https://www.docker.com/)
+[![AWS S3](https://img.shields.io/badge/AWS%20S3-Bucket-orange.svg?style=for-the-badge&logo=amazons3)](https://aws.amazon.com/s3/)
+
+IncidentIQ is a production-ready, distributed IT Incident Management system designed to streamline the reporting, assignment, tracking, and resolution of organizational IT issues. The platform integrates modern technologies like dynamic AI ticket classification, asynchronous event-driven messaging, secure object storage, real-time WebSocket notifications, and high-performance user caching.
 
 ---
 
-## 1. Project Architecture
+##  Project Overview
 
-The application is built on a distributed microservices pattern. Backend microservices are built with **Spring Boot** and **Java 21**, registering automatically with a **Netflix Eureka** discovery server. Clients route their REST API requests through **Spring Cloud Gateway**. 
+IncidentIQ automates the IT support ticket lifecycle. Instead of manual triage, incoming incidents are analyzed by LLMs to determine their category and priority. Workflows are tailored dynamically for three roles: regular employees, support engineers, and admins. All inter-service activities are securely audited, and notifications are delivered instantaneously to active web browsers.
+
+---
+
+## Features
+
+*   **Role-Based Workflows:** Distinct UI dashboards and business rule enforcements for:
+   *   **Users:** Log tickets, attach files, view personal ticket status, read notifications.
+   *   **Support Engineers:** Claims tickets, updates status, registers resolution notes.
+   *   **Admins:** Overlooks all system statistics, assigns tickets, closes tickets, monitors audit trails.
+*   **AI-Powered Ticket Classification:** Classifies tickets' priority (`LOW` to `CRITICAL`) and category (`NETWORK`, `DATABASE`, etc.) instantly upon submission using Groq's Llama 3.3 model.
+*   **Decoupled Event Notifications:** Utilizes Apache Kafka to asynchronously publish incident state changes to a notification processor.
+*   **Live Notification Pushes:** Uses WebSockets (STOMP over SockJS) to broadcast alerts to the user interface in real-time.
+*   **AWS S3 Secure Storage:** Directly uploads ticket attachments to Amazon S3, securing access by generating expiring pre-signed URLs.
+*   **State Auditing:** Automatically logs every stage of the incident lifecycle (created, assigned, resolved, closed) with user context to a central audit repository.
+
+---
+
+## 📐 System Architecture
+
+The following diagram illustrates the microservices topology, service discoveries, and message buses:
+
+
+
+<summary> Click to expand Text-based ASCII Diagram Fallback</summary>
 
 ```text
-                      +-------------------+
-                      |  User / Browser   |
-                      +---------+---------+
-                                |
-             +------------------+------------------+
-             | (HTTP :3000/80)                     | (WS :8084)
-             v                                     v
-   +---------+---------+                 +---------+---------+
-   |  React Frontend   |                 | WebSocket /ws     |
-   +---------+---------+                 +---------+---------+
-             | (HTTP :8080)                        ^
-             v                                     | (WS Broadcast)
-   +---------+---------+                 +---------+---------+
-   |   API Gateway     |                 |   Notification    |
-   +----+----+----+----+                 |     Service       |
-        |    |    |                      +---------+---------+
-        |    |    +---------------+                ^
-        |    |                    |                | (Kafka Event)
-        |    v                    v                |
-        |  [User Service]   [AI Service]           |
-        |    (:8081)             (:8083)           |
-        v                                          |
-   [Incident Service] -----------------------------+
-        (:8082)
+                               +-----------------------------+
+                               |    Web Browser / Client     |
+                               +--------------+--------------+
+                                              |
+                     +------------------------+------------------------+
+                     | (HTTP port 3000)                                | (WebSockets port 8084)
+                     v                                                 v
+         +-----------------------+                         +-----------------------+
+         |     React Frontend    |                         |    WebSocket (/ws)    |
+         +-----------+-----------+                         +-----------+-----------+
+                     | (HTTP API Calls)                                ^
+                     v                                                 | (Live Broadcasts)
+         +-----------------------+                         +-----------+-----------+
+         |  Spring API Gateway   |                         | Notification Service  |
+         +-----+-----+-----+-----+                         +-----------+-----------+
+               |     |     |                                           ^
+               |     |     +----------------+                          |
+               |     v                      v                          | (Kafka Messages)
+               |  [User Service]       [AI Service]                    |
+               |  (Redis Cache :6379)  (Groq LLM API)                  |
+               v                                                       |
+         [Incident Service] ───────────────────────────────────────────+
+         (AWS S3 File Storage)
 ```
 
 
----
-## 2. Key Features
 
-- **Role-Based Workflows**: Tailored dashboard statistics and operation restrictions for **Users** (report tickets, view notifications), **Support Engineers** (claim tickets, update lifecycle states, submit resolutions), and **Admins** (re-assign tickets, close tickets, monitor system health).
-- **AI-Powered Classification**: Automatically analyzes incident titles and descriptions on submission to predict priority and IT category using the Groq Completions API (`llama-3.3-70b-versatile`). Includes automatic fail-safes.
-- **Event-Driven Architecture**: Uses Apache Kafka to publish state transitions asynchronously from `incident-service` to `notification-service`.
-- **Real-Time Live Notifications**: Employs WebSockets (SockJS & STOMP protocol) inside `notification-service` to broadcast instant alerts to active user browsers.
-- **Secure File Storage**: Direct file attachments are uploaded to an AWS S3 bucket, with security enforced by serving expiring pre-signed URLs for downloads and views.
-- **Comprehensive Auditing**: Tracks all state changes (Creation, Assignment, Resolution, Closure) with user attributes inside a dedicated audit log DB table.
 
----
+##  AI Integration
 
-## 3. Technology Stack
+When an incident is created, `incident-service` uses a Feign client to request classification from `ai-service`.
 
-### Backend
-- Java 21 & Spring Boot 3.5+
-- Spring Cloud Gateway (WebFlux)
-- Spring Cloud Netflix Eureka Server & OpenFeign Clients
-- Spring Data JPA (Hibernate)
-- Spring Security (JWT authentication)
-- Spring Kafka & Spring WebSocket
-
-### Frontend
-- React 19 & React Router DOM 7
-- Vite & Tailwind CSS v4
-- Ant Design v6 components
-- Recharts (statistics visualizers)
-- SockJS-client & StompJS (Websocket handler)
-
-### Databases & Middleware
-- PostgreSQL (AWS RDS instance in production)
-- Redis (Session cache & user data caching)
-- Apache Kafka (Event message broker)
+*   **LLM Model:** Llama 3.3 (`llama-3.3-70b-versatile`) via Groq API.
+*   **Prompt Constraints:** The LLM is instructed to return **strictly valid JSON** containing the recommended priority (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`) and category (`APPLICATION`, `DATABASE`, `NETWORK`, `SECURITY`, `INFRASTRUCTURE`).
+*   **Fault Tolerance:** The service tries calling Groq up to **3 times** with a 2-second delay. If all attempts fail, it applies a safe fallback classification (`MEDIUM` priority, `APPLICATION` category) so ticket creation never crashes.
 
 ---
 
-## 4. Directory Structure
+##  Authentication Flow
+
+Security is stateless and uses JSON Web Tokens (JWT).
+
+1.  **Generation:** The user logs in via `/api/v1/auth/login`. The `user-service` hashes user input, verifies it against PostgreSQL (using `BCrypt`), and generates a JWT signed with a secret key.
+2.  **Verification:** The client passes this token in the header as `Authorization: Bearer <token>` for subsequent requests. Downstream services (like `incident-service`) intercept the call and validate the token locally using the same shared secret key.
+3.  **Token Propagation:** When `incident-service` needs to query `user-service` via Feign, the `RequestInterceptor` in `FeignConfig` copies the incoming client authentication token and appends it to the outgoing inter-service request, propagating the user's role context.
+
+---
+
+##  Deployment & CI/CD Architecture
+
+### CI/CD Workflow
+The CI/CD pipeline is orchestrated using **GitHub Actions** (`.github/workflows/cicd.yml`):
+1.  **Build:** On pushes to `main` branch, a runner checks out the code, configures Java 21 Temurin, and builds each Maven package.
+2.  **Push:** Builds Docker images for the frontend and all 5 backend services, tagging and pushing them to DockerHub.
+3.  **Deploy:** The runner logs into the AWS EC2 instance via SSH, pulls the latest code and docker images, stops old containers, restarts updated containers, and runs Actuator healthchecks.
+
+### Port Mappings Matrix
+| Service | Container Port | External Port |
+| :--- | :--- | :--- |
+| Gateway | `8080` | `8080` |
+| Eureka Dashboard | `8761` | `8761` |
+| Frontend UI | `80` | `3000` |
+| Redis Cache | `6379` | `6379` |
+| Kafka Broker | `9092` | `9092` |
+
+---
+
+## 📂 Project Structure
 
 ```text
 IncidentIQ/
-├── eureka-server/           # Netflix Eureka Service Registry
-├── gatway-service/          # Spring Cloud API Gateway (Routing and CORS)
-├── user-service/            # Authentication, JWT, and User Profiles
-├── incident-service/        # Incident lifecycle, S3 attachments, and Audit Logs
-├── ai-service/              # LLM Groq Classification API
-├── notification-service/    # Kafka event subscriber and WebSocket Broadcaster
-├── IncidentIQ-frontend/     # React Client SPA (served via Nginx in Docker)
-├── docker-compose.yml       # Production-ready Docker orchestrator
+├── .github/workflows/       # GitHub Actions CI/CD pipeline configurations
+├── eureka-server/           # Service discovery registry
+├── gatway-service/          # Spring Cloud routing Gateway
+├── user-service/            # Authentication & JWT security profiles
+├── incident-service/        # Incident core logic, S3 buckets, & audit logs
+├── ai-service/              # Groq completions categorization API
+├── notification-service/    # Kafka listener & WebSocket stomp broadcaster
+├── IncidentIQ-frontend/     # React 19 Frontend application
+├── docker-compose.yml       # Production-ready orchestrator
 ├── docker-compose-local.yml # Local development orchestrator
-├── .env.example             # Template for required environment variables
+├── .env.example             # Template env config file
 └── .env.docker              # Environment configuration for containers
 ```
 
 ---
 
-## 5. Port Mappings Matrix
-
-| Service | Host Port | Internal Container Port | Description |
-| :--- | :--- | :--- | :--- |
-| **eureka-server** | `8761` | `8761` | Discovery dashboard URL |
-| **gateway-service** | `8080` | `8080` | Entrypoint for all backend API routes |
-| **user-service** | `8081` | `8081` | Direct access to Auth & Users |
-| **incident-service** | `8082` | `8082` | Direct access to Incidents & Attachments |
-| **ai-service** | `8083` | `8083` | Direct access to Groq LLM Classifier |
-| **notification-service**| `8084` | `8084` | Direct access to notifications and `/ws` WebSocket endpoint |
-| **frontend** | `3000` | `80` | Nginx React client server |
-| **redis** | `6379` | `6379` | Shared cache container |
-| **kafka** | `9092` | `9092` | Event broker |
-
----
-
-## 6. Local Development Setup
+##  Local Setup Instructions
 
 ### Prerequisites
-- Docker & Docker Compose installed
-- JDK 21 and Maven (if running backend services outside Docker)
-- Node.js & npm (if running frontend outside Docker)
+*   Java 21 installed.
+*   Node.js 18+ and npm installed.
+*   PostgreSQL running locally.
+*   Redis running locally.
+*   Kafka running locally.
 
-### Running Everything with Docker Compose
+### Running Backend Services Individually
+Navigate into any microservice directory (e.g. `user-service`), configure its `application.yml` with your local database details, and run:
+```bash
+./mvnw spring-boot:run
+```
 
-1. **Clone the repository** and navigate to the project root.
-2. **Configure environment variables**:
-   Create a `.env` file based on `.env.example`:
-   ```bash
-   cp .env.example .env
-   ```
-   Provide valid values for the databases, AWS credentials, S3 bucket names, and your **Groq API key**.
-
-3. **Start the containers**:
-   ```bash
-   docker compose -f docker-compose.yml up -d --build
-   ```
-4. **Access the application**:
-   - Frontend UI: `http://localhost:3000`
-   - Eureka Discovery Dashboard: `http://localhost:8761`
-   - Gateway endpoint: `http://localhost:8080`
-
-### Database Schema Updates
-The backend services use Hibernate's `ddl-auto: update` configuration. When the services start, Hibernate will automatically connect to your database and generate or update the required tables (`users`, `incidents`, `attachments`, `audit_logs`, `notifications`).
+### Running Frontend Client
+Navigate into `IncidentIQ-frontend` and run:
+```bash
+npm install
+npm run dev
+```
 
 ---
 
-## 7. Production Configurations
+## 🐳 Docker Setup
 
-### CORS Settings
-The Gateway handles CORS globally. In production, configure the allowed origins in `application.yml` or using the `FRONTEND_URL` environment variable:
-```yaml
-spring:
-  cloud:
-    gateway:
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOriginPatterns:
-              - "*"  # Allows dynamic public IPs or custom domain mappings
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - PATCH
-              - DELETE
-              - OPTIONS
-            allowedHeaders: "*"
-            allowCredentials: true
+The easiest way to run the entire cluster locally is using Docker Compose:
+
+1.  **Create `.env` file:**
+    ```bash
+    cp .env.example .env
+    ```
+    Populate the variables with your AWS S3 details and your Groq API key (`GROQ_API_KEY`).
+
+2.  **Build and run the stack:**
+    ```bash
+    docker compose up -d --build
+    ```
+
+3.  **Validate Services:**
+   *   Eureka Console: `http://localhost:8761`
+   *   React Client Dashboard: `http://localhost:3000`
+
+---
+
+## AWS Deployment
+
+The application is deployed on an **AWS EC2** instance, utilizing **AWS S3** for attachment storage and optionally **AWS RDS** for managed PostgreSQL databases.
+
+### S3 Permissions Setup
+Ensure the S3 Bucket has a CORS configuration allowing your production domain to issue uploads:
+```json
+[
+  {
+    "AllowedHeaders": ["*"],
+    "AllowedMethods": ["GET", "PUT", "POST", "DELETE"],
+    "AllowedOrigins": ["*"],
+    "ExposeHeaders": ["ETag"]
+  }
+]
 ```
 
-### Production Nginx Reverse Proxy
-In production, the frontend Nginx reverse-proxies API calls to the Gateway and WebSocket connections to the Notification Service:
-```nginx
-# API Gateway Proxy
-location /api/ {
-    proxy_pass http://gateway-service:8080;
-    proxy_http_version 1.1;
-    proxy_set_header Host $host;
-}
+---
 
-# WebSocket STOMP Proxy to Notification Service
-location /ws {
-    proxy_pass http://notification-service:8084;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "Upgrade";
-    proxy_set_header Host $host;
-}
-```
+##  Future Enhancements
+
+*   **Email Dispatch Integration:** Add an email microservice listening to Kafka events to send SMTP emails when critical tickets remain unresolved.
+*   **Kubernetes Migration:** Package services inside a Kubernetes cluster (using Helm charts) to support auto-scaling under high ticketing loads.
+*   **Advanced AI SLA Tracking:** Implement LLM-based timeline predictions to warn administrators if a ticket is at risk of breaching Service Level Agreements (SLA).
+*   **Consolidated Log Aggregation:** Add an ELK stack (Elasticsearch, Logstash, Kibana) or Prometheus/Grafana dashboard for aggregated log tracking and monitoring.

@@ -22,8 +22,8 @@
         timeout: 2s
 
   jwt:
-    secret: ${JWT_SECRET:aW5jaWRlbnRpcXN1cGVyc2VjcmV0a2V5aW5jaWRlbnRpcXN1cGVyc2VjcmV0a2V5MTIz}
-    expiration: ${JWT_EXPIRATION:3600000}
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION}
 
   eureka:
     instance:
