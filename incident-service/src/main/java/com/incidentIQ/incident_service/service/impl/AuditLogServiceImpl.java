@@ -45,7 +45,7 @@ public class AuditLogServiceImpl
             Long incidentId) {
 
         return repository
-                .findByIncidentIdOrderByCreatedAtDesc(
+                .findByIncidentIdOrderByCreatedAtAsc(
                         incidentId
                 )
                 .stream()
