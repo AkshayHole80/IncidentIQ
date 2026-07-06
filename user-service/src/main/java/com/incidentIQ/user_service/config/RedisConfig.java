@@ -22,12 +22,8 @@ import java.util.Map;
 public class RedisConfig {
 
     @Bean
-    public GenericJackson2JsonRedisSerializer redisSerializer(
-            ObjectMapper objectMapper) {
-
-        return new GenericJackson2JsonRedisSerializer(
-                objectMapper.copy()
-        );
+    public GenericJackson2JsonRedisSerializer redisSerializer() {
+        return new GenericJackson2JsonRedisSerializer();
     }
 
     @Bean

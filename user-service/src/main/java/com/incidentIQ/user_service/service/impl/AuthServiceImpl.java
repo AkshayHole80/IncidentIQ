@@ -29,10 +29,10 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authenticationManager;
 
-//    @Caching(evict = {
-//            @CacheEvict(value = CacheNames.SUPPORT_ENGINEERS, allEntries = true),
-//            @CacheEvict(value = CacheNames.ADMINS, allEntries = true)
-//    })
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.SUPPORT_ENGINEERS, allEntries = true),
+            @CacheEvict(value = CacheNames.ADMINS, allEntries = true)
+    })
     @Override
     public AuthResponseDto register(RegisterRequestDto request) {
 

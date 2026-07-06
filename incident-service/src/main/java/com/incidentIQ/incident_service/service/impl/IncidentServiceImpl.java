@@ -8,10 +8,7 @@ import com.incidentIQ.incident_service.dto.response.IncidentResponseDto;
 import com.incidentIQ.incident_service.dto.response.IncidentStatsResponseDto;
 import com.incidentIQ.incident_service.dto.response.UserResponseDto;
 import com.incidentIQ.incident_service.entity.Incident;
-import com.incidentIQ.incident_service.enums.AuditAction;
-import com.incidentIQ.incident_service.enums.Category;
-import com.incidentIQ.incident_service.enums.IncidentStatus;
-import com.incidentIQ.incident_service.enums.Priority;
+import com.incidentIQ.incident_service.enums.*;
 import com.incidentIQ.incident_service.event.IncidentNotificationEvent;
 import com.incidentIQ.incident_service.exception.BadRequestException;
 import com.incidentIQ.incident_service.exception.ForbiddenException;
@@ -139,6 +136,32 @@ public class IncidentServiceImpl implements IncidentService {
                 "Incident created successfully with id={}",
                 saved.getId()
         );
+
+        if (saved.getPriority() == Priority.CRITICAL) {
+            log.info("Critical incident detected, notifying admins.");
+            try {
+                List<UserResponseDto> admins = userServiceClient.getAdmins();
+                if (admins != null) {
+                    for (UserResponseDto admin : admins) {
+                        kafkaProducerService.sendNotification(
+                                IncidentNotificationEvent.builder()
+                                        .userId(admin.getId())
+                                        .recipientEmail(admin.getEmail())
+                                        .recipientName(admin.getFirstName())
+                                        .incidentId(saved.getId())
+                                        .priority("CRITICAL")
+                                        .assignedBy(user.getFirstName())
+                                        .notificationType(NotificationType.CRITICAL)
+                                        .title("🚨 Critical Incident Alert")
+                                        .message("Critical incident #" + saved.getId() + " has been raised: " + saved.getTitle())
+                                        .build()
+                        );
+                    }
+                }
+            } catch (Exception ex) {
+                log.error("Failed to notify admins about critical incident: {}", ex.getMessage());
+            }
+        }
 
         return modelMapper.map(
                 saved,
@@ -327,6 +350,10 @@ public class IncidentServiceImpl implements IncidentService {
         Incident saved =
                 incidentRepository.save(
                         incident);
+        UserResponseDto assignedEngineer =
+                userServiceClient.getUserById(
+                        request.getAssignedTo()
+                );
         auditLogService.log(
                 incident.getId(),
                 currentUser.getId(),
@@ -336,14 +363,46 @@ public class IncidentServiceImpl implements IncidentService {
                         + request.getAssignedTo()
         );
         kafkaProducerService.sendNotification(
+
                 IncidentNotificationEvent.builder()
-                        .userId(request.getAssignedTo())
+
+                        .userId(
+                                assignedEngineer.getId()
+                        )
+
+                        .recipientEmail(
+                                assignedEngineer.getEmail()
+                        )
+
+                        .recipientName(
+                                assignedEngineer.getFirstName()
+                        )
+
+                        .incidentId(
+                                saved.getId()
+                        )
+
+                        .priority(
+                                saved.getPriority().name()
+                        )
+
+                        .assignedBy(
+                                currentUser.getFirstName()
+                        )
+
+                        .notificationType(
+                                NotificationType.ASSIGNED
+                        )
+
                         .title("Incident Assigned")
+
                         .message(
                                 "You have been assigned incident #"
                                         + saved.getId()
                         )
+
                         .build()
+
         );
 
         return modelMapper.map(

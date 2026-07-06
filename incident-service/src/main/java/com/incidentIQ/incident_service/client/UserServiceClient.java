@@ -18,4 +18,9 @@ public interface UserServiceClient {
 
     @GetMapping("/api/v1/users/admins")
     List<UserResponseDto> getAdmins();
+
+    @GetMapping("/api/v1/users/{id}")
+    UserResponseDto getUserById(
+            @PathVariable("id") Long id
+    );
 }
