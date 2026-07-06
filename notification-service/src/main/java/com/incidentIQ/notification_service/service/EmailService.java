@@ -11,4 +11,7 @@ public interface EmailService {
 
     void sendCriticalIncidentEmail(IncidentNotificationEvent event);
 
+    void sendResolutionEmail(IncidentNotificationEvent event);
+
+    void sendClosureEmail(IncidentNotificationEvent event);
 }

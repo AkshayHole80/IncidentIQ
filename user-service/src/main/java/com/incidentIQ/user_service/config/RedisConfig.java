@@ -1,8 +1,9 @@
 package com.incidentIQ.user_service.config;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.incidentIQ.user_service.constant.CacheNames;
-import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,8 +23,17 @@ import java.util.Map;
 public class RedisConfig {
 
     @Bean
-    public GenericJackson2JsonRedisSerializer redisSerializer() {
-        return new GenericJackson2JsonRedisSerializer();
+    public GenericJackson2JsonRedisSerializer redisSerializer(
+            ObjectMapper objectMapper) {
+
+        ObjectMapper copy = objectMapper.copy();
+        copy.activateDefaultTyping(
+                LaissezFaireSubTypeValidator.instance,
+                ObjectMapper.DefaultTyping.NON_FINAL,
+                JsonTypeInfo.As.PROPERTY
+        );
+
+        return new GenericJackson2JsonRedisSerializer(copy);
     }
 
     @Bean

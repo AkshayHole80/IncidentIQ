@@ -220,4 +220,90 @@ public class EmailServiceImpl implements EmailService {
         }
 
     }
+
+    @Override
+    public void sendResolutionEmail(IncidentNotificationEvent event) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+
+            helper.setFrom("incidentiq.system@gmail.com");
+            helper.setTo(event.getRecipientEmail());
+            helper.setSubject("Incident Resolved | IncidentIQ");
+
+            String html = """
+                <html>
+                <body style="font-family:Arial">
+                    <h2 style="color:#10b981">Incident Resolved</h2>
+                    <p>Hello <b>%s</b>,</p>
+                    <p>Your incident has been resolved.</p>
+                    <table border="1" cellpadding="8" cellspacing="0">
+                        <tr><td><b>Incident ID</b></td><td>%d</td></tr>
+                        <tr><td><b>Priority</b></td><td>%s</td></tr>
+                        <tr><td><b>Resolved By</b></td><td>%s</td></tr>
+                    </table>
+                    <br>
+                    <p>If you are satisfied with the resolution, no further action is needed. Otherwise, please reply or contact support.</p>
+                    <br>
+                    <p>Regards,<br>IncidentIQ Team</p>
+                </body>
+                </html>
+                """.formatted(
+                    event.getRecipientName(),
+                    event.getIncidentId(),
+                    event.getPriority(),
+                    event.getAssignedBy()
+            );
+
+            helper.setText(html, true);
+            mailSender.send(mimeMessage);
+
+        } catch (Exception e) {
+            log.error("Failed to send resolution email for incident {} to recipient {}: {}", 
+                    event.getIncidentId(), event.getRecipientEmail(), e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void sendClosureEmail(IncidentNotificationEvent event) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+
+            helper.setFrom("incidentiq.system@gmail.com");
+            helper.setTo(event.getRecipientEmail());
+            helper.setSubject("Incident Closed | IncidentIQ");
+
+            String html = """
+                <html>
+                <body style="font-family:Arial">
+                    <h2 style="color:#6b7280">Incident Closed</h2>
+                    <p>Hello <b>%s</b>,</p>
+                    <p>Your incident has been closed.</p>
+                    <table border="1" cellpadding="8" cellspacing="0">
+                        <tr><td><b>Incident ID</b></td><td>%d</td></tr>
+                        <tr><td><b>Priority</b></td><td>%s</td></tr>
+                        <tr><td><b>Closed By</b></td><td>%s</td></tr>
+                    </table>
+                    <br>
+                    <p>This is a final confirmation that the incident has been archived.</p>
+                    <br>
+                    <p>Regards,<br>IncidentIQ Team</p>
+                </body>
+                </html>
+                """.formatted(
+                    event.getRecipientName(),
+                    event.getIncidentId(),
+                    event.getPriority(),
+                    event.getAssignedBy()
+            );
+
+            helper.setText(html, true);
+            mailSender.send(mimeMessage);
+
+        } catch (Exception e) {
+            log.error("Failed to send closure email for incident {} to recipient {}: {}", 
+                    event.getIncidentId(), event.getRecipientEmail(), e.getMessage(), e);
+        }
+    }
 }

@@ -44,6 +44,18 @@ public class KafkaConsumerService {
 
         }
 
+        if (event.getNotificationType() == NotificationType.RESOLVED) {
+
+            emailService.sendResolutionEmail(event);
+
+        }
+
+        if (event.getNotificationType() == NotificationType.CLOSED) {
+
+            emailService.sendClosureEmail(event);
+
+        }
+
         System.out.println(
                 "Notification processed : "
                         + event.getNotificationType()

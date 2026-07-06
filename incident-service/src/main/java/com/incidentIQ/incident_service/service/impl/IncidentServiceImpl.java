@@ -646,10 +646,32 @@ public class IncidentServiceImpl implements IncidentService {
                                     "Incident #"
                                             + saved.getId()
                                             + " has been resolved"
-                            )
+                                    )
                             .build()
             );
         }
+
+        try {
+            UserResponseDto owner = userServiceClient.getUserById(saved.getCreatedBy());
+            if (owner != null) {
+                kafkaProducerService.sendNotification(
+                        IncidentNotificationEvent.builder()
+                                .userId(owner.getId())
+                                .recipientEmail(owner.getEmail())
+                                .recipientName(owner.getFirstName())
+                                .incidentId(saved.getId())
+                                .priority(saved.getPriority().name())
+                                .assignedBy(currentUser.getFirstName())
+                                .notificationType(NotificationType.RESOLVED)
+                                .title("Incident Resolved")
+                                .message("Your incident #" + saved.getId() + " has been resolved")
+                                .build()
+                );
+            }
+        } catch (Exception ex) {
+            log.error("Failed to notify incident owner about resolution: {}", ex.getMessage());
+        }
+
         return modelMapper.map(
                 saved,
                 IncidentResponseDto.class);
@@ -700,19 +722,41 @@ public class IncidentServiceImpl implements IncidentService {
                 "Incident closed"
         );
 
-        kafkaProducerService.sendNotification(
-                IncidentNotificationEvent.builder()
-                        .userId(
-                                incident.getCreatedBy()
-                        )
-                        .title("Incident Closed")
-                        .message(
-                                "Your incident #"
-                                        + saved.getId()
-                                        + " has been closed"
-                        )
-                        .build()
-        );
+        try {
+            UserResponseDto owner = userServiceClient.getUserById(saved.getCreatedBy());
+            if (owner != null) {
+                kafkaProducerService.sendNotification(
+                        IncidentNotificationEvent.builder()
+                                .userId(owner.getId())
+                                .recipientEmail(owner.getEmail())
+                                .recipientName(owner.getFirstName())
+                                .incidentId(saved.getId())
+                                .priority(saved.getPriority().name())
+                                .assignedBy(currentUser.getFirstName())
+                                .notificationType(NotificationType.CLOSED)
+                                .title("Incident Closed")
+                                .message(
+                                        "Your incident #"
+                                                + saved.getId()
+                                                + " has been closed"
+                                )
+                                .build()
+                );
+            }
+        } catch (Exception ex) {
+            log.error("Failed to notify incident owner about closure: {}", ex.getMessage());
+            kafkaProducerService.sendNotification(
+                    IncidentNotificationEvent.builder()
+                            .userId(saved.getCreatedBy())
+                            .title("Incident Closed")
+                            .message(
+                                    "Your incident #"
+                                            + saved.getId()
+                                            + " has been closed"
+                            )
+                            .build()
+            );
+        }
         log.info(
                 "Incident {} closed by admin {}",
                 id,
