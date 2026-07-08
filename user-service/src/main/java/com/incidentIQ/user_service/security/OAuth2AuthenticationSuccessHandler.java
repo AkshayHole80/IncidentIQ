@@ -30,7 +30,17 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // Generate your custom JWT token using the email
         String token = jwtService.generateTokenFromEmail(email);
 
-        String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth2/redirect")
+        String base = frontendUrl.trim();
+        // Remove duplicate or misformatted http prefixes
+        base = base.replaceAll("^(?i)(https?:/*)+", "");
+        // Prepend clean http://
+        base = "http://" + base;
+        
+        if (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+
+        String targetUrl = UriComponentsBuilder.fromUriString(base + "/oauth2/redirect")
                 .queryParam("token", token)
                 .build().toUriString();
 
