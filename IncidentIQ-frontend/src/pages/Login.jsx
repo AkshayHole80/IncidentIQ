@@ -6,6 +6,11 @@ import { useAuth } from '../context/AuthContext';
 
 const { Title, Text } = Typography;
 
+const getOAuthUrl = (provider) => {
+  const backendHost = window.location.hostname === 'localhost' ? 'localhost' : window.location.hostname;
+  return `http://${backendHost}:8081/oauth2/authorization/${provider}`;
+};
+
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const { login, darkMode } = useAuth();
@@ -86,7 +91,7 @@ const Login = () => {
           <Button
             type="default"
             icon={<GoogleOutlined className="text-red-500" />}
-            href="http://localhost:8081/oauth2/authorization/google"
+            href={getOAuthUrl('google')}
             block
             className="h-11 rounded-lg font-medium border-gray-300 hover:border-red-500 hover:text-red-500 flex justify-center items-center gap-2"
           >
@@ -95,7 +100,7 @@ const Login = () => {
           <Button
             type="default"
             icon={<GithubOutlined className="text-slate-800 dark:text-white" />}
-            href="http://localhost:8081/oauth2/authorization/github"
+            href={getOAuthUrl('github')}
             block
             className="h-11 rounded-lg font-medium border-gray-300 hover:border-slate-800 hover:text-slate-800 dark:hover:border-white dark:hover:text-white flex justify-center items-center gap-2"
           >
