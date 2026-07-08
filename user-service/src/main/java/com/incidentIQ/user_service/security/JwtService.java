@@ -33,6 +33,16 @@ public class JwtService {
                 .compact();
     }
 
+    public String generateTokenFromEmail(String email) {
+
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSignInKey())
+                .compact();
+    }
+
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }

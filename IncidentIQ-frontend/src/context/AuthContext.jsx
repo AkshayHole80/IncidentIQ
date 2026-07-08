@@ -124,6 +124,24 @@ export const AuthProvider = ({ children }) => {
     }
   }, [darkMode]);
 
+  const loginWithToken = async (token) => {
+    setLoading(true);
+    try {
+      localStorage.setItem('token', token);
+      
+      const decoded = parseJwt(token);
+      const role = decoded?.role || 'USER';
+      localStorage.setItem('role', role);
+
+      await fetchUserProfile(token, role);
+      return { success: true, role };
+    } catch (error) {
+      console.error("Login with token failed", error);
+      setLoading(false);
+      throw error;
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
@@ -135,6 +153,7 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     login,
+    loginWithToken,
     register,
     logout,
     isAuthenticated: !!user,

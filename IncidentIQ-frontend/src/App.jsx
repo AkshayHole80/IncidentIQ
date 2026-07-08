@@ -15,6 +15,7 @@ import MyIncidents from './pages/MyIncidents';
 import AssignedIncidents from './pages/AssignedIncidents';
 import AllIncidents from './pages/AllIncidents';
 import IncidentDetails from './pages/IncidentDetails';
+import OAuth2RedirectHandler from './pages/OAuth2RedirectHandler';
 
 function AppContent() {
   const { darkMode } = useAuth();
@@ -100,6 +101,8 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
 
         {/* Catch-all redirect to Dashboard */}
         <Route path="*" element={<Navigate to="/" replace />} />

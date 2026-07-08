@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Form, Input, Button, Typography, message } from 'antd';
-import { MailOutlined, LockOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import { MailOutlined, LockOutlined, SafetyCertificateOutlined, GoogleOutlined, GithubOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -76,6 +76,32 @@ const Login = () => {
             </Button>
           </Form.Item>
         </Form>
+
+        <div className="relative my-6 text-center">
+          <span className="bg-white dark:bg-zinc-900 px-3 text-gray-400 text-sm">Or sign in with</span>
+          <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-gray-200 dark:bg-zinc-800 -z-10"></div>
+        </div>
+
+        <div className="flex gap-4">
+          <Button
+            type="default"
+            icon={<GoogleOutlined className="text-red-500" />}
+            href="http://localhost:8081/oauth2/authorization/google"
+            block
+            className="h-11 rounded-lg font-medium border-gray-300 hover:border-red-500 hover:text-red-500 flex justify-center items-center gap-2"
+          >
+            Google
+          </Button>
+          <Button
+            type="default"
+            icon={<GithubOutlined className="text-slate-800 dark:text-white" />}
+            href="http://localhost:8081/oauth2/authorization/github"
+            block
+            className="h-11 rounded-lg font-medium border-gray-300 hover:border-slate-800 hover:text-slate-800 dark:hover:border-white dark:hover:text-white flex justify-center items-center gap-2"
+          >
+            GitHub
+          </Button>
+        </div>
 
         <div className="text-center mt-5">
           <Text type="secondary">Don't have an account? </Text>
