@@ -37,10 +37,12 @@ const CreateIncident = () => {
   };
 
   const onFinish = async (values) => {
-    setAiModalTitle('Analyzing Incident Details');
-    setAiModalText('Our Gemini AI agent is classifying the category and severity level based on your description...');
     setLoading(true);
-    setShowAiModal(true);
+    if (fileList.length > 0) {
+      setAiModalTitle('Uploading Attachments');
+      setAiModalText(`Uploading ${fileList.length} attachment(s) to secure S3 storage...`);
+      setShowAiModal(true);
+    }
     try {
       const response = await api.post('/v1/incidents', {
         title: values.title,
@@ -51,8 +53,6 @@ const CreateIncident = () => {
 
       // Handle queued attachment uploads
       if (fileList.length > 0) {
-        setAiModalTitle('Uploading Attachments');
-        setAiModalText(`Uploading ${fileList.length} attachment(s) to secure S3 storage...`);
         try {
           await Promise.all(fileList.map(file => uploadAttachment(createdIncident.id, file)));
         } catch (uploadError) {
@@ -64,21 +64,19 @@ const CreateIncident = () => {
       setShowAiModal(false);
       setFileList([]);
 
-      // Display dynamic details computed by Gemini
+      // Display success notification
       notification.open({
         message: 'Incident Created Successfully!',
         description: (
           <div>
             <p><strong>ID:</strong> #{createdIncident.id}</p>
-            <p>
-              <strong>AI Classification:</strong><br />
-              Priority: <span className={`font-bold ${createdIncident.priority === 'CRITICAL' || createdIncident.priority === 'HIGH' ? 'text-red-500' : 'text-green-500'}`}>{createdIncident.priority}</span><br />
-              Category: <span className="font-bold text-blue-500">{createdIncident.category}</span>
+            <p className="text-gray-400 dark:text-gray-500 italic mt-1">
+              AI analysis is running in the background. Priority and category will be classified shortly.
             </p>
           </div>
         ),
         icon: <SmileOutlined className="text-green-500" />,
-        duration: 8,
+        duration: 5,
       });
 
       form.resetFields();

@@ -10,6 +10,8 @@ import com.incidentIQ.incident_service.dto.response.UserResponseDto;
 import com.incidentIQ.incident_service.entity.Incident;
 import com.incidentIQ.incident_service.enums.*;
 import com.incidentIQ.incident_service.event.IncidentNotificationEvent;
+import com.incidentIQ.incident_service.event.IncidentCreatedEvent;
+import org.springframework.kafka.core.KafkaTemplate;
 import com.incidentIQ.incident_service.exception.BadRequestException;
 import com.incidentIQ.incident_service.exception.ForbiddenException;
 import com.incidentIQ.incident_service.exception.IncidentNotFoundException;
@@ -44,6 +46,7 @@ public class IncidentServiceImpl implements IncidentService {
     private final AuditLogService auditLogService;
     private final AttachmentRepository attachmentRepository;
     private final S3Service s3Service;
+    private final KafkaTemplate<String, Object> genericKafkaTemplate;
 
     @Override
     public IncidentResponseDto createIncident(
@@ -69,44 +72,6 @@ public class IncidentServiceImpl implements IncidentService {
         Priority priority = Priority.MEDIUM;
         Category category = Category.APPLICATION;
 
-        try {
-
-            log.info(
-                    "Calling AI service for incident classification");
-
-            AnalyzeIncidentRequestDto aiRequest =
-                    new AnalyzeIncidentRequestDto();
-
-            aiRequest.setTitle(request.getTitle());
-            aiRequest.setDescription(request.getDescription());
-
-            AnalyzeIncidentResponseDto aiResponse =
-                    aiServiceClient.analyzeIncident(aiRequest);
-
-            priority =
-                    Priority.valueOf(
-                            aiResponse.getPriority()
-                    );
-
-            category =
-                    Category.valueOf(
-                            aiResponse.getCategory()
-                    );
-
-            log.info(
-                    "AI classified incident. Priority={}, Category={}",
-                    priority,
-                    category
-            );
-
-        } catch (Exception e) {
-
-            log.error(
-                    "Failed to classify incident using AI service. Using default values.",
-                    e
-            );
-        }
-
         Incident incident = Incident.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -131,6 +96,17 @@ public class IncidentServiceImpl implements IncidentService {
                 AuditAction.CREATED,
                 "Incident created"
         );
+
+        try {
+            genericKafkaTemplate.send("incident-created-topic", IncidentCreatedEvent.builder()
+                    .incidentId(saved.getId())
+                    .title(saved.getTitle())
+                    .description(saved.getDescription())
+                    .build());
+            log.info("Sent IncidentCreatedEvent to Kafka for incident id={}", saved.getId());
+        } catch (Exception e) {
+            log.error("Failed to send IncidentCreatedEvent to Kafka", e);
+        }
 
         log.info(
                 "Incident created successfully with id={}",
