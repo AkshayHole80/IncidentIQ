@@ -192,8 +192,6 @@ Ensure the S3 Bucket has a CORS configuration allowing your production domain to
 ---
 
 ##  Future Enhancements
-
-*   **Email Dispatch Integration:** Add an email microservice listening to Kafka events to send SMTP emails when critical tickets remain unresolved.
 *   **Kubernetes Migration:** Package services inside a Kubernetes cluster (using Helm charts) to support auto-scaling under high ticketing loads.
 *   **Advanced AI SLA Tracking:** Implement LLM-based timeline predictions to warn administrators if a ticket is at risk of breaching Service Level Agreements (SLA).
 *   **Consolidated Log Aggregation:** Add an ELK stack (Elasticsearch, Logstash, Kibana) or Prometheus/Grafana dashboard for aggregated log tracking and monitoring.
